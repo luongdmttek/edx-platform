@@ -22,7 +22,7 @@ class TestCreateJWTs(AccessTokenMixin, TestCase):
         self.user = UserFactory()
         self.default_scopes = ['email', 'profile']
 
-    def _create_client(self, oauth_adapter, client_restricted, grant_type=''):
+    def _create_client(self, oauth_adapter, client_restricted, grant_type=None):
         """
         Creates and returns an OAuth client using the given oauth_adapter.
         Configures the client as a RestrictedApplication if client_restricted is
@@ -33,7 +33,7 @@ class TestCreateJWTs(AccessTokenMixin, TestCase):
             user=self.user,
             redirect_uri='',
             client_id='public-client-id',
-            grant_type=grant_type,
+            grant_type=grant_type or '',
         )
         if client_restricted:
             RestrictedApplication.objects.create(application=client)
