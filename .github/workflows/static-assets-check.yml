@@ -68,6 +68,9 @@ jobs:
     - name: Run Tests
       env:
         LMS_CFG: lms/envs/bok_choy.yml
+        CMS_CFG: cms/envs/bok_choy.yml
       run: |
-        echo "Running the CMS migrations."
-        paver update_assets --settings=bok_choy
+        # npm install
+        npm install -g rtlcss
+        # ./scripts/update-assets-dev.sh
+        paver update_assets
