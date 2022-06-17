@@ -68,8 +68,9 @@ jobs:
     - name: Run Tests
       env:
         LMS_CFG: lms/envs/bok_choy.yml
+        CMS_CFG: cms/envs/bok_choy.yml
       run: |
         # npm install
         npm install -g rtlcss
-        # ./scripts/update-assets-dev.sh
-        paver update_assets
+        paver update_assets lms
+        paver update_assets cms
