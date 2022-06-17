@@ -49,8 +49,8 @@ jobs:
       env:
         LMS_CFG: lms/envs/bok_choy.yml
         CMS_CFG: cms/envs/bok_choy.yml
-        NODE_PATH: /node_modules
       run: |
+        echo "$GITHUB_WORKSPACE/node_modules/.bin" >> $GITHUB_PATH
         # npm install
         # npm install -g rtlcss
         # ./scripts/update-assets-dev.sh
