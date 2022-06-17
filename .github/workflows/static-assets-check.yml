@@ -70,7 +70,6 @@ jobs:
         LMS_CFG: lms/envs/bok_choy.yml
         CMS_CFG: cms/envs/bok_choy.yml
       run: |
-        # npm install
-        npm install -g rtlcss
+        npm install
         paver update_assets lms
         paver update_assets cms
