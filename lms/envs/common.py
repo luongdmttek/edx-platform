@@ -1059,9 +1059,10 @@ RETRY_CALENDAR_SYNC_EMAIL_MAX_ATTEMPTS = 5
 
 MARKETING_EMAILS_OPT_IN = False
 
-# TODO: Remove this temporary flag after successfully running the management command.
+# TODO: Remove these two temporary flags after successfully running the management command.
 # Ticket: https://openedx.atlassian.net/browse/VAN-966
 MARKETING_EMAILS_OPT_IN_FIRST_USER_ID = 10000
+MARKETING_EMAILS_OPT_IN_FIRST_USER_ATTRIBUTE_ID = 10000
 
 # .. toggle_name: ENABLE_COPPA_COMPLIANCE
 # .. toggle_implementation: DjangoSetting

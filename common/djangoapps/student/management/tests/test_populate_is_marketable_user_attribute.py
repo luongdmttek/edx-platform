@@ -6,12 +6,13 @@ import pytest
 from django.contrib.auth.models import User  # lint-amnesty, pylint: disable=imported-auth-user
 from django.core.management import call_command
 from django.test import TransactionTestCase
+from django.test.utils import override_settings
 
 from common.djangoapps.student.models import UserAttribute
 from common.djangoapps.student.tests.factories import UserFactory
 from openedx.core.djangolib.testing.utils import skip_unless_lms
 
-MARKETING_EMAILS_OPT_IN = 'is_marketable'
+IS_MARKETABLE = 'is_marketable'
 
 
 @skip_unless_lms
@@ -30,7 +31,7 @@ class TestPopulateMarketingOptInUserAttribute(TransactionTestCase):
         """
         assert UserAttribute.objects.count() == 0
         call_command('populate_is_marketable_user_attribute')
-        assert UserAttribute.objects.filter(name=MARKETING_EMAILS_OPT_IN).count() == User.objects.count()
+        assert UserAttribute.objects.filter(name=IS_MARKETABLE).count() == User.objects.count()
 
     def test_command_with_new_user(self):
         """
@@ -38,8 +39,9 @@ class TestPopulateMarketingOptInUserAttribute(TransactionTestCase):
         """
         user = UserFactory()
         call_command('populate_is_marketable_user_attribute')
-        assert UserAttribute.objects.filter(name=MARKETING_EMAILS_OPT_IN).count() == User.objects.count()
+        assert UserAttribute.objects.filter(name=IS_MARKETABLE).count() == User.objects.count()
 
+    @override_settings(MARKETING_EMAILS_OPT_IN_FIRST_USER_ATTRIBUTE_ID=1)
     def test_command_rename_to_new_attribute(self):
         """
         Test renaming of marketing_emails_opt_in to is_marketable attribute.
@@ -48,7 +50,7 @@ class TestPopulateMarketingOptInUserAttribute(TransactionTestCase):
         UserAttribute.objects.create(user=user, name='marketing_emails_opt_in', value='true')
         call_command('populate_is_marketable_user_attribute')
         assert UserAttribute.objects.filter(name='marketing_emails_opt_in').count() == 0
-        assert UserAttribute.get_user_attribute(user, MARKETING_EMAILS_OPT_IN) == 'true'
+        assert UserAttribute.get_user_attribute(user, IS_MARKETABLE) == 'true'
 
     def test_command_with_invalid_argument(self):
         """
