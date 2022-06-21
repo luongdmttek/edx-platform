@@ -63,7 +63,7 @@ NPM_INSTALLED_LIBRARIES = [
     'requirejs/require.js',
     'underscore.string/dist/underscore.string.js',
     'underscore/underscore.js',
-    '@edx/studio-frontend/dist/',
+    'studio-frontend-vi/dist/',
     'which-country/index.js'
 ]
 

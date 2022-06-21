@@ -32,9 +32,9 @@ mkdir -p common/static/common/css/vendor
 
 # Copy studio-frontend CSS and JS into vendor directory.
 # (reimplementing pavelib.assets:process_npm_assets)
-find node_modules/@edx/studio-frontend/dist -type f \( -name \*.css -o -name \*.css.map \) | \
+find node_modules/studio-frontend-vi/dist -type f \( -name \*.css -o -name \*.css.map \) | \
 	xargs cp --target-directory=common/static/common/css/vendor
-find node_modules/@edx/studio-frontend/dist -type f \! -name \*.css \! -name \*.css.map | \
+find node_modules/studio-frontend-vi/dist -type f \! -name \*.css \! -name \*.css.map | \
 	xargs cp --target-directory=common/static/common/js/vendor
 
 # Copy certain NPM JS into vedor directory.
