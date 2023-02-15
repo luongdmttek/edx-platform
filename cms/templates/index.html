@@ -21,6 +21,183 @@ from openedx.core.djangolib.js_utils import (
   });
 </%block>
 
+<%block name="course_search_filter">
+<script type="text/javascript">
+  $(document).ready(function() {
+
+    $("#filter-course-run").select2();
+    $("#filter-course-org").select2();
+
+    $("div#no-item").hide();
+
+    // Process event when change value of combobox
+    $("#filter-course-run").click(function () {
+      $('#filter-course-org').prop('selectedIndex', 0).change();
+      status = this.value;
+
+      $("#search-course").val("");
+      if (status == 'all') {
+        $(tab_id+" li").show();
+      }
+      else {
+        $(tab_id+" li").hide();
+        $(tab_id+" li."+status).show();
+      }
+    });
+
+    $("#filter-course-org").click(function () {
+      $('#filter-course-run').prop('selectedIndex', 0).change();
+      org = this.value;
+
+      $("#search-course").val("");
+      if (org == 'all') {
+        $(tab_id+" li").show();
+      }
+      else {
+        $(tab_id+" li").hide();
+        $(tab_id+" li."+org).show();
+      }
+    });
+
+    // Process and set data for combobox
+    ProcessCombobox = function (tabID) {
+      var arr = [];
+      $("#filter-course-run").find('option').not(':first').remove();
+      $("#search-course").val('');
+      $("div#no-item").hide();
+      $(tabID+" li.course-item").show();
+      $(tabID+" li.course-item").each(function() {
+        if (tabID == '#react-library-listing') {
+          var course_num = ($(this).context.textContent).split(":")[2];
+          $(this).addClass(course_num);
+          if(!arr.includes(course_num)) {
+            arr.push(course_num);
+          }
+        } else {
+          var course_run = ($(this).attr("data-course-key")).split("+")[2];
+          $(this).addClass(course_run);
+          if(!arr.includes(course_run)) {
+            arr.push(course_run);
+          }
+        }
+
+      });
+      arr.sort();
+      arr.forEach(function(course_run) {
+        $("#filter-course-run").append($('<option>', {value: course_run, text: course_run}));
+      });
+    }
+
+    ProcessOrgCombobox = function (tabID) {
+      var arr = [];
+      $("#filter-course-org").find('option').not(':first').remove();
+      $("#search-course").val('');
+      $("div#no-item").hide();
+      $(tabID+" li.course-item").show();
+      $(tabID+" li.course-item").each(function() {
+        if (tabID == '#react-library-listing') {
+          var orgCode = ($(this).context.textContent).split(":")[1];
+          orgCode = orgCode.replace('Course Number', '');
+          $(this).addClass(orgCode);
+          if(!arr.includes(orgCode)) {
+            arr.push(orgCode);
+          }
+        } else {
+          var course_org = ($(this).attr("data-course-key")).split("+")[1];
+          $(this).addClass(course_org);
+          if(!arr.includes(course_org)) {
+            arr.push(course_org);
+          }
+        }
+      });
+      arr.sort();
+      arr.forEach(function(course_org) {
+        $("#filter-course-org").append($('<option>', {value: course_org, text: course_org}));
+      });
+    }
+
+    // Process search input and dropdown value seleted 
+    SearchCourse = function() {
+      var text = String($("#search-course").val()).toLowerCase();
+      var dropdownValue;
+
+      var runIndex = $('#filter-course-run').prop('selectedIndex');
+      var orgIndex = $('#filter-course-org').prop('selectedIndex');
+
+      if (runIndex == 0 && orgIndex != 0) {
+        dropdownValue = $("#filter-course-org").val();
+      }
+      else if (runIndex != 0 && orgIndex == 0) {
+        dropdownValue = $("#filter-course-run").val();
+      }
+      else {
+        dropdownValue = 'all';
+      }
+
+      if (text == '' && dropdownValue == 'all') {
+        $(tab_id+" li").show();
+      } 
+      else if (text == '' && dropdownValue != 'all') {
+        $(tab_id+" li").hide();
+        $(tab_id+" li."+dropdownValue).show();
+      }
+      else if (text != '' && dropdownValue != 'all') {
+        $(tab_id+" li."+dropdownValue).each(function(index) {
+          var content = $(this).context.childNodes[0].childNodes[0].textContent.toLowerCase();
+          if(!content.includes(text)) {
+            $(tab_id+" li."+ dropdownValue +":eq("+ index +")").hide();
+          } else {
+            $(tab_id+" li."+ dropdownValue +":eq("+ index +")").show();
+          }
+        });
+      } 
+      else {
+        $(tab_id+" li.course-item").each(function(index) {
+          var content = $(this).context.childNodes[0].childNodes[0].textContent.toLowerCase();
+          if(!content.includes(text)) {
+            $(tab_id+" li.course-item:eq("+ index +")").hide();
+          } else {
+            $(tab_id+" li.course-item:eq("+ index +")").show();
+          }
+        });
+      }
+
+      $(tab_id+" li.course-item").each(function() {
+        if ($(this).css("display") == "list-item") {
+          $("div#no-item").hide();
+          return false;
+        }
+        else {
+          $("div#no-item").show();
+        }
+      })
+    }
+
+    // Process data in tab choosing
+    TabSelect = function(name) {
+      switch(name) {
+        case 'courses-tab':
+          tab_id = '#react-course-listing';
+          break;
+        case 'archived-courses-tab':
+          tab_id = '#react-archived-course-listing';
+          break;
+        case 'libraries-tab':
+          tab_id = '#react-library-listing';
+          break;
+      }
+      $('#filter-course-run').prop('selectedIndex', 0).change();
+      $('#filter-course-org').prop('selectedIndex', 0).change();
+      ProcessCombobox(tab_id);
+      ProcessOrgCombobox(tab_id);
+    }
+
+    // Set default tab select for page load in first time
+    TabSelect('courses-tab');
+  })
+</script>
+</%block>
+
 <%block name="content">
 <div class="wrapper-mast wrapper">
   <header class="mast has-actions">
@@ -206,6 +383,30 @@ from openedx.core.djangolib.js_utils import (
       </div>
       %endif
 
+      %if len(courses) > 0 or optimization_enabled:
+      <div class="course-filter">
+        <div class="search-course">
+          <input type="text" id="search-course" placeholder="${_('Search')}" oninput="SearchCourse()">
+        </div>
+        <div class="course-status">
+          <span>
+              ${_("Status:")}
+          </span>
+          <select name="filter_course_run" id="filter-course-run">
+              <option value="all">${_("All")}</option>
+          </select>
+        </div>
+        <div class="org-status">
+          <span>
+              ${_("Organization:")}
+          </span>
+          <select name="filter_course_org" id="filter-course-org">
+              <option value="all">${_("All")}</option>
+          </select>
+        </div>
+      </div>
+      % endif
+
       <!-- STATE: processing courses -->
       %if allow_course_reruns and rerun_creator_status and len(in_process_course_actions) > 0:
       <div class="courses courses-processing">
@@ -314,7 +515,7 @@ from openedx.core.djangolib.js_utils import (
 
       % if libraries_enabled or archived_courses:
       <ul id="course-index-tabs">
-      <li class="courses-tab ${ 'active' if active_tab == 'courses' else ''}">
+      <li class="courses-tab ${ 'active' if active_tab == 'courses' else ''}" onclick="TabSelect('courses-tab')">
           % if split_studio_home and active_tab == 'libraries':
             <a href="${reverse('home')}">${_("Courses")}</a>
           % else:
@@ -322,7 +523,7 @@ from openedx.core.djangolib.js_utils import (
           % endif
        </li>
         % if archived_courses:
-        <li class="archived-courses-tab">
+        <li class="archived-courses-tab" onclick="TabSelect('archived-courses-tab')">
             % if split_studio_home and active_tab == 'libraries':
                 <a href="${reverse('home') + '#archived-courses-tab' } " >${_("Archived Courses")}</a>
             % else:
@@ -335,7 +536,7 @@ from openedx.core.djangolib.js_utils import (
             % if redirect_to_library_authoring_mfe:
             <li><a href="${library_authoring_mfe_url}">${_("Libraries")}</a></li>
             %else:
-             <li class="libraries-tab ${ 'active' if active_tab == 'libraries' else ''}">
+             <li class="libraries-tab ${ 'active' if active_tab == 'libraries' else ''}" onclick="TabSelect('libraries-tab')">
                 % if split_studio_home:
                   <a href="${reverse('home_library')}">${_("Libraries")}</a>
                 % else:
@@ -535,7 +736,9 @@ from openedx.core.djangolib.js_utils import (
         % endif
       </div>
       %endif
-
+      <div id="no-item" class="item-note">
+        <p class="item-note-info">${_("There is no item.")}</p>
+      </div>
     </article>
     <aside class="content-supplementary" role="complementary">
       <div class="bit">
