@@ -95,20 +95,30 @@ from openedx.core.djangolib.js_utils import (
       $("div#no-item").hide();
       $(tabID+" li.course-item").show();
       $(tabID+" li.course-item").each(function() {
-        if (tabID == '#react-library-listing') {
-          var orgCode = ($(this).context.textContent).split(":")[1];
-          orgCode = orgCode.replace('Course Number', '');
-          $(this).addClass(orgCode);
-          if(!arr.includes(orgCode)) {
-            arr.push(orgCode);
-          }
-        } else {
-          var course_org = ($(this).attr("data-course-key")).split("+")[1];
-          $(this).addClass(course_org);
-          if(!arr.includes(course_org)) {
-            arr.push(course_org);
-          }
+        var orgCode = ($(this).context.textContent).split(":")[1];
+        orgCode = orgCode.replace('Course Number', '');
+        $(this).addClass(orgCode);
+        if(!arr.includes(orgCode)) {
+          arr.push(orgCode);
         }
+
+        // if (tabID == '#react-library-listing') {
+        //   var orgCode = ($(this).context.textContent).split(":")[1];
+        //   orgCode = orgCode.replace('Course Number', '');
+        //   $(this).addClass(orgCode);
+        //   if(!arr.includes(orgCode)) {
+        //     arr.push(orgCode);
+        //   }
+        // } else {
+        //   // var course_org = ($(this).attr("data-course-key")).split("+")[0];
+        //   // course_org = course_org.replace('course-v1:', '');
+        //   var course_org = ($(this).context.textContent).split(":")[1];
+        //   course_org = course_org.replace('Course Number', '');
+        //   $(this).addClass(course_org);
+        //   if(!arr.includes(course_org)) {
+        //     arr.push(course_org);
+        //   }
+        // }
       });
       arr.sort();
       arr.forEach(function(course_org) {
@@ -143,7 +153,10 @@ from openedx.core.djangolib.js_utils import (
       }
       else if (text != '' && dropdownValue != 'all') {
         $(tab_id+" li."+dropdownValue).each(function(index) {
-          var content = $(this).context.childNodes[0].childNodes[0].textContent.toLowerCase();
+          // var content = $(this).context.childNodes[0].childNodes[0].textContent.toLowerCase();
+          var content = $(this).context.textContent.toLowerCase();
+          var regex = /organization|course number|course run|re-run|courseview|live|:/gi
+          content = content.replace(regex, ' ')
           if(!content.includes(text)) {
             $(tab_id+" li."+ dropdownValue +":eq("+ index +")").hide();
           } else {
@@ -153,7 +166,10 @@ from openedx.core.djangolib.js_utils import (
       } 
       else {
         $(tab_id+" li.course-item").each(function(index) {
-          var content = $(this).context.childNodes[0].childNodes[0].textContent.toLowerCase();
+          // var content = $(this).context.childNodes[0].childNodes[0].textContent.toLowerCase();
+          var content = $(this).context.textContent.toLowerCase();
+          var regex = /organization|course number|course run|re-run|courseview|live|:/gi
+          content = content.replace(regex, ' ')
           if(!content.includes(text)) {
             $(tab_id+" li.course-item:eq("+ index +")").hide();
           } else {
