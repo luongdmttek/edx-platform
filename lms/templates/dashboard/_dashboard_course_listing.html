@@ -1,4 +1,4 @@
-<%page args="course_overview, enrollment, entitlement, entitlement_session, course_card_index, enrollments_fbe_is_on, is_unfulfilled_entitlement, is_fulfilled_entitlement, entitlement_available_sessions, entitlement_expiration_date, entitlement_expired_at, show_courseware_link, cert_status, can_refund_entitlement, can_unenroll, credit_status, show_email_settings, course_mode_info, is_paid_course, is_course_voucher_refundable, course_requirements, dashboard_index, share_settings, related_programs, display_course_modes_on_dashboard, show_consent_link, enterprise_customer_name, resume_button_url, partner_managed_enrollment" expression_filter="h"/>
+<%page args="course_overview, enrollment, entitlement, entitlement_session, course_card_index, is_unfulfilled_entitlement, is_fulfilled_entitlement, entitlement_available_sessions, entitlement_expiration_date, entitlement_expired_at, show_courseware_link, cert_status, can_refund_entitlement, can_unenroll, credit_status, show_email_settings, course_mode_info, is_paid_course, is_course_voucher_refundable, course_requirements, dashboard_index, share_settings, related_programs, display_course_modes_on_dashboard, show_consent_link, enterprise_customer_name, resume_button_url, partner_managed_enrollment" expression_filter="h"/>
 
 <%!
 import datetime
@@ -48,6 +48,15 @@ from lms.djangoapps.experiments.utils import UPSELL_TRACKING_FLAG
       and not entitlement
       and course_mode_info['verified_sku']
   )
+
+  if course_overview.has_ended():
+    status_class_name = "ended"
+  elif course_overview.has_started() and course_overview.has_ended() is False:
+    status_class_name = "started"
+  elif course_overview.has_ended() is False and course_overview.has_started() is False:
+    status_class_name = "starts"
+  else:
+    status_class_name = ""
 %>
 
 <%
@@ -58,7 +67,7 @@ from lms.djangoapps.experiments.utils import UPSELL_TRACKING_FLAG
 
 <%namespace name='static' file='../static_content.html'/>
 
-<li class="course-item">
+<li class="course-item ${status_class_name}">
   % if display_course_modes_on_dashboard:
     <%
         course_verified_certs = enrollment_mode_display(

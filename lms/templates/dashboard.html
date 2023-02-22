@@ -51,6 +51,102 @@ from common.djangoapps.student.models import CourseEnrollment
         sendAccountActivationEmail: "${reverse('send_account_activation_email') | n, js_escaped_string}"
 
       });
+
+      // Process data for dropdown list
+      var arr = [];
+      $("div#no-item").hide();
+      $(".wrapper-action-more").each(function() {
+        var course_id = $(this).attr("data-course-key");
+        var course_run = course_id.split("+")[2];
+        if(!arr.includes(course_run))
+        {
+          arr.push(course_run);
+        }
+      });
+      arr.sort();
+      arr.forEach(function(course_run) {
+        $("#filter_course_run").append($('<option>', {value: course_run, text: course_run}));
+      });
+      $("li.course-item").each(function() {
+        var course_id = this.children[0].firstElementChild.attributes[1].nodeValue;
+        var course_run = course_id.split("+")[2];
+        $(this).addClass(course_run);
+      });
+
+      // Event change select2 dropdown list
+      $("#filter_course").change(function () {
+        var status = new Array;
+        status = $(this).val()
+        course_run = $("#filter_course_run").val();
+
+        $("li.course-item").hide();
+        if (status) {
+          status.forEach((data) => { 
+            course_run == 'all' ? $("li."+data).show() : $("li."+data+"."+course_run).show();
+          });
+        }
+        else {
+          course_run == 'all' ? $("li.course-item").show(): $("li."+course_run).show();
+        }
+
+        $("li.course-item").each(function() {
+          if ($(this).css("display") == "list-item") {
+            $("div#no-item").hide();
+            return false;
+          }
+          else {
+            $("div#no-item").show();
+          }
+        })
+      });
+      $("#filter_course_run").change(function() {
+        var status = new Array;
+        status = $("#filter_course").val();
+        course_run = this.value;
+
+        $("li.course-item").hide();
+        if (course_run == 'all') {
+          status ? status.forEach((data) => { 
+            $("li."+data).show();
+          }) : 
+          $("li.course-item").show();
+        }
+        else {
+          status ? status.forEach((data) => { 
+            $("li."+data+"."+course_run).show();
+          }) : 
+          $("li."+course_run).show();
+        }
+
+        $("li.course-item").each(function() {
+          if ($(this).css("display") == "list-item") {
+            $("div#no-item").hide();
+            return false;
+          }
+          else {
+            $("div#no-item").show();
+          }
+        })
+      });
+
+      // Init function
+      init = function() {
+        // 1. Hide all course
+        $("li.course-item").hide();
+        // 2. Show special course for starts and started
+        $("li.starts").show();
+        $("li.started").show();
+      };
+
+      // Init select2 dropdown list
+      $('#filter_course').select2();
+      $('#filter_course_run').select2();
+      // Set defaut values pre-selected
+      $('#filter_course').val(['starts', 'started']);
+      $('#filter_course').trigger('change');
+
+      // Execute init function
+      init();
     });
   </script>
   <%static:webpack entry="UnenrollmentFactory">
@@ -152,7 +248,7 @@ from common.djangoapps.student.models import CourseEnrollment
           % if display_dashboard_courses:
           <%include file="learner_dashboard/_dashboard_navigation_courses.html"/>
           % endif
-
+          <%include file="dashboard/_dashboard_filter_dropdown.html" args='course_enrollments=course_enrollments'/>
           % if len(course_entitlements + course_enrollments) > 0:
             <ul class="listing-courses">
             <%
@@ -269,6 +365,9 @@ from common.djangoapps.student.models import CourseEnrollment
             % endfor
             </div>
           % endif
+          <div id="no-item" class="item-note">
+            <p class="item-note-info">${_("There is no item.")}</p>
+          </div>
         </div>
       </div>
       <div class="side-container" role="complementary" aria-label="messages">

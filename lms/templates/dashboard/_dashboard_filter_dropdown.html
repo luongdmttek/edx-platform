@@ -1,0 +1,31 @@
+<%!
+import datetime
+import six
+
+from django.conf import settings
+from django.utils.http import urlencode, urlquote_plus
+from django.utils.translation import gettext as _
+from django.utils.translation import ungettext
+from django.urls import reverse
+%>
+
+<div class="course-filter">
+    <div class="course-status">
+        <span>
+            ${_("Status:")}
+        </span>
+        <select name="filter_course" id="filter_course" multiple="multiple">
+            <option value="started">${_("Learning")}</option>
+            <option value="starts">${_("Learning soon")}</option>
+            <option value="ended">${_("Ended")}</option>
+        </select>
+    </div>
+    <div class="course-run-filter">
+        <span>
+            ${_("Course run:")}
+        </span>
+        <select name="filter_course_run" id="filter_course_run">
+            <option value="all">${_("All")}</option>
+        </select>
+    </div>
+</div>
