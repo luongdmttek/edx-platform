@@ -166,6 +166,7 @@ define(['domReady', 'jquery', 'underscore', 'js/utils/cancel_on_escape', 'js/vie
                 $('.courses-tab').toggleClass('active', tab === 'courses-tab');
                 $('.archived-courses-tab').toggleClass('active', tab === 'archived-courses-tab');
                 $('.libraries-tab').toggleClass('active', tab === 'libraries-tab');
+                $('.personal-libraries-tab').toggleClass('active', tab === 'personal-libraries-tab');
 
             // Also toggle this course-related notice shown below the course tab, if it is present:
                 $('.wrapper-creationrights').toggleClass('is-hidden', tab !== 'courses-tab');
@@ -176,6 +177,7 @@ define(['domReady', 'jquery', 'underscore', 'js/utils/cancel_on_escape', 'js/vie
             var courseTabHref = $('#course-index-tabs .courses-tab a').attr('href');
             var libraryTabHref = $('#course-index-tabs .libraries-tab a').attr('href');
             var ArchivedTabHref = $('#course-index-tabs .archived-courses-tab a').attr('href');
+            var personalLibraryTabHref = $('#course-index-tabs .personal-libraries-tab a').attr('href');
 
             $('.new-course-button').bind('click', addNewCourse);
             $('.new-library-button').bind('click', addNewLibrary);
@@ -197,6 +199,11 @@ define(['domReady', 'jquery', 'underscore', 'js/utils/cancel_on_escape', 'js/vie
             if (ArchivedTabHref === '#') {
                 $('#course-index-tabs .archived-courses-tab').bind('click', showTab('archived-courses-tab'));
             }
+
+            if (personalLibraryTabHref === '#') {
+                $('#course-index-tabs .personal-libraries-tab').bind('click', showTab('personal-libraries-tab'));
+            }
+            
             if (window.location.hash) {
                 $(window.location.hash.replace('#', '.')).first('a').trigger('click');
             }
