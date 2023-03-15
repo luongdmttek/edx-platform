@@ -1440,6 +1440,8 @@ class CourseBlock(
         "Intro to Computer Science" with the course key "edX/CS-101/2014", the
         course number would be "CS-101"
         """
+        if self.display_coursenumber:
+            return self.display_coursenumber
         return course_metadata_utils.number_for_course_location(self.location)
 
     @property
@@ -1454,6 +1456,8 @@ class CourseBlock(
 
     @property
     def org(self):
+        if self.display_organization:
+            return self.display_organization
         return self.location.org
 
     @property
