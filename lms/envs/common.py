@@ -4152,6 +4152,7 @@ ACCOUNT_VISIBILITY_CONFIGURATION["admin_fields"] = (
         "verified_name",
         "extended_profile",
         "gender",
+        "hidden_expire_courses",
         "state",
         "goals",
         "is_active",

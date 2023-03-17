@@ -545,6 +545,14 @@ class UserProfile(models.Model):
         blank=True, null=True, max_length=6, db_index=True, choices=GENDER_CHOICES
     )
 
+    HIDDEN_EXPIRE_CHOICES = (
+        ('s', gettext_noop('Show')),
+        ('h', gettext_noop('Hide')),
+    )
+    hidden_expire_courses = models.CharField(
+        max_length=2, choices=HIDDEN_EXPIRE_CHOICES, default='h'
+    )
+    
     # [03/21/2013] removed these, but leaving comment since there'll still be
     # p_se and p_oth in the existing data in db.
     # ('p_se', 'Doctorate in science or engineering'),
@@ -660,6 +668,10 @@ class UserProfile(models.Model):
         """ Convenience method that returns the human readable gender. """
         if self.gender:
             return self.__enumerable_to_display(self.GENDER_CHOICES, self.gender)
+
+    @property
+    def hidden_expire_display(self):
+        return self.hidden_expire_courses
 
     def get_meta(self):  # pylint: disable=missing-function-docstring
         js_str = self.meta
