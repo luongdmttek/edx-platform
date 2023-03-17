@@ -157,6 +157,7 @@ class UserReadOnlySerializer(serializers.Serializer):  # lint-amnesty, pylint: d
             "state": None,
             "profile_image": None,
             "language_proficiencies": None,
+            "hidden_expire_courses": None,
             "name": None,
             "gender": None,
             "goals": None,
@@ -187,6 +188,7 @@ class UserReadOnlySerializer(serializers.Serializer):  # lint-amnesty, pylint: d
                     ).data,
                     "name": user_profile.name,
                     "gender": AccountLegacyProfileSerializer.convert_empty_to_None(user_profile.gender),
+                    "hidden_expire_courses": AccountLegacyProfileSerializer.convert_empty_to_None(user_profile.hidden_expire_courses),
                     "goals": user_profile.goals,
                     "year_of_birth": user_profile.year_of_birth,
                     "level_of_education": AccountLegacyProfileSerializer.convert_empty_to_None(
@@ -289,7 +291,7 @@ class AccountLegacyProfileSerializer(serializers.HyperlinkedModelSerializer, Rea
         fields = (
             "name", "gender", "goals", "year_of_birth", "level_of_education", "country", "state", "social_links",
             "mailing_address", "bio", "profile_image", "requires_parental_consent", "language_proficiencies",
-            "phone_number", "city"
+            "phone_number", "city", "hidden_expire_courses"
         )
         # Currently no read-only field, but keep this so view code doesn't need to know.
         read_only_fields = ()
