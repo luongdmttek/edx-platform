@@ -135,6 +135,8 @@ from .tools import (
     strip_if_string,
 )
 from .. import permissions
+from pytz import timezone
+from openedx.core.djangoapps.user_api.models import UserPreference
 
 log = logging.getLogger(__name__)
 
@@ -2859,7 +2861,7 @@ def change_due_date(request, course_id):
     course = get_course_by_id(CourseKey.from_string(course_id))
     student = require_student_from_identifier(request.POST.get('student'))
     unit = find_unit(course, request.POST.get('url'))
-    due_date = parse_datetime(request.POST.get('due_datetime'))
+    due_date = parse_datetime(request.POST.get('due_datetime'), request.user)
     reason = strip_tags(request.POST.get('reason', ''))
 
     set_due_date_extension(course, unit, student, due_date, request.user, reason=reason)
@@ -2867,7 +2869,7 @@ def change_due_date(request, course_id):
     return JsonResponse(_(
         'Successfully changed due date for student {0} for {1} '
         'to {2}').format(student.profile.name, _display_unit(unit),
-                         due_date.strftime('%Y-%m-%d %H:%M')))
+                         due_date.strftime('%Y-%m-%d %H:%M %Z')))
 
 
 @handle_dashboard_error
@@ -2896,7 +2898,9 @@ def reset_due_date(request, course_id):
             _("Successfully removed invalid due date extension (unit has no due date).")
         )
 
-    original_due_date_str = original_due_date.strftime('%Y-%m-%d %H:%M')
+    user_timezone = timezone(UserPreference.get_value(request.user, 'time_zone'))
+    original_due_date = original_due_date.astimezone(user_timezone)
+    original_due_date_str = original_due_date.strftime('%Y-%m-%d %H:%M %Z')
     return JsonResponse(_(
         'Successfully reset due date for student {0} for {1} '
         'to {2}').format(student.profile.name, _display_unit(unit),
@@ -2915,7 +2919,7 @@ def show_unit_extensions(request, course_id):
     """
     course = get_course_by_id(CourseKey.from_string(course_id))
     unit = find_unit(course, request.POST.get('url'))
-    return JsonResponse(dump_module_extensions(course, unit))
+    return JsonResponse(dump_module_extensions(course, unit, request.user))
 
 
 @handle_dashboard_error
@@ -2931,7 +2935,7 @@ def show_student_extensions(request, course_id):
     """
     student = require_student_from_identifier(request.POST.get('student'))
     course = get_course_by_id(CourseKey.from_string(course_id))
-    return JsonResponse(dump_student_extensions(course, student))
+    return JsonResponse(dump_student_extensions(course, student, request.user))
 
 
 def _split_input_list(str_list):

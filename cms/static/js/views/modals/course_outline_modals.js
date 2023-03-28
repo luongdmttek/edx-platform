@@ -8,9 +8,9 @@
 define(['jquery', 'backbone', 'underscore', 'gettext', 'js/views/baseview',
     'js/views/modals/base_modal', 'date', 'js/views/utils/xblock_utils',
     'js/utils/date_utils', 'edx-ui-toolkit/js/utils/html-utils',
-    'edx-ui-toolkit/js/utils/string-utils'
+    'edx-ui-toolkit/js/utils/string-utils', 'moment-timezone'
 ], function(
-    $, Backbone, _, gettext, BaseView, BaseModal, date, XBlockViewUtils, DateUtils, HtmlUtils, StringUtils
+    $, Backbone, _, gettext, BaseView, BaseModal, date, XBlockViewUtils, DateUtils, HtmlUtils, StringUtils, momentTimezone
 ) {
     'use strict';
     var CourseOutlineXBlockModal, SettingsXBlockModal, PublishXBlockModal, HighlightsXBlockModal,
@@ -358,10 +358,11 @@ define(['jquery', 'backbone', 'underscore', 'gettext', 'js/views/baseview',
                 timeFormat: 'H:i',
                 forceRoundTime: false
             });
+            var timezone = this.model.get('user_timezone');
             if (this.model.get(this.fieldName)) {
                 DateUtils.setDate(
                     this.$('input.date'), this.$('input.time'),
-                    this.model.get(this.fieldName)
+                    timezone ? momentTimezone(this.model.get(this.fieldName)).tz(timezone).format('YYYY-MM-DDTHH[:]mm[:]ss') : this.model.get(this.fieldName)
                 );
             }
         }
@@ -372,8 +373,13 @@ define(['jquery', 'backbone', 'underscore', 'gettext', 'js/views/baseview',
         templateName: 'due-date-editor',
         className: 'modal-section-content has-actions due-date-input grading-due-date',
 
+        afterRender: function() {
+            var timezone = this.model.get('user_timezone');
+            this.$('.due-timezone').text('(' + momentTimezone.tz(timezone).format('z') + '):');
+        },
+
         getValue: function() {
-            return DateUtils.getDate(this.$('#due_date'), this.$('#due_time'));
+            return DateUtils.getDate(this.$('#due_date'), this.$('#due_time'), this);
         },
 
         clearValue: function(event) {
@@ -483,6 +489,8 @@ define(['jquery', 'backbone', 'underscore', 'gettext', 'js/views/baseview',
         startingReleaseDate: null,
 
         afterRender: function() {
+            var timezone = this.model.get('user_timezone');
+            this.$('.release-timezone').text('(' + momentTimezone.tz(timezone).format('z') + '):');
             BaseDateEditor.prototype.afterRender.call(this);
             // Store the starting date and time so that we can determine if the user
             // actually changed it when "Save" is pressed.
@@ -490,7 +498,7 @@ define(['jquery', 'backbone', 'underscore', 'gettext', 'js/views/baseview',
         },
 
         getValue: function() {
-            return DateUtils.getDate(this.$('#start_date'), this.$('#start_time'));
+            return DateUtils.getDate(this.$('#start_date'), this.$('#start_time'), this);
         },
 
         clearValue: function(event) {

@@ -11,10 +11,11 @@ from django.utils.translation import get_language, gettext, pgettext
 from pytz import UnknownTimeZoneError, timezone, utc
 
 from lms.djangoapps.courseware.context_processor import user_timezone_locale_prefs
+from openedx.core.djangoapps.user_api.models import UserPreference
 from openedx.core.djangolib.markup import HTML
 
 
-def get_default_time_display(dtime):
+def get_default_time_display(dtime, user=None):
     """
     Converts a datetime to a string representation. This is the default
     representation used in Studio and LMS.
@@ -25,18 +26,21 @@ def get_default_time_display(dtime):
     If None is passed in for dt, an empty string will be returned.
 
     """
+    user_timezone = UserPreference.get_value(user, 'time_zone')
     if dtime is None:
         return ""
+    if user_timezone:
+        dtime = dtime.astimezone(timezone(user_timezone))
     if dtime.tzinfo is not None:
         try:
-            timezone = " " + dtime.tzinfo.tzname(dtime)  # lint-amnesty, pylint: disable=redefined-outer-name
+            zone = " " + dtime.tzinfo.tzname(dtime)  # lint-amnesty, pylint: disable=redefined-outer-name
         except NotImplementedError:
-            timezone = dtime.strftime('%z')
+            zone = dtime.strftime('%z')
     else:
-        timezone = " UTC"
+        zone = " UTC"
 
     localized = strftime_localized(dtime, "DATE_TIME")
-    return (localized + timezone).strip()
+    return (localized + zone).strip()
 
 
 def get_time_display(dtime, format_string=None, coerce_tz=None):

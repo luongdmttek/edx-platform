@@ -160,6 +160,7 @@ function(Backbone, _, str, ModuleUtils) {
              * (for example, which groups are selected for this particular XBlock).
              */
             user_partitions: null,
+            user_timezone: null,
             /**
              * This xBlock's Highlights to message to learners.
              */

@@ -2,8 +2,8 @@
  * Course import-related js.
  */
 define(
-    ['jquery', 'underscore', 'gettext', 'moment', 'edx-ui-toolkit/js/utils/html-utils', 'jquery.cookie'],
-    function($, _, gettext, moment, HtmlUtils) {
+    ['jquery', 'underscore', 'gettext', 'moment', 'moment-timezone', 'edx-ui-toolkit/js/utils/html-utils', 'jquery.cookie'],
+    function($, _, gettext, moment, momentTimezone, HtmlUtils) {
         'use strict';
 
         /** ******** Private properties ****************************************/
@@ -29,6 +29,7 @@ define(
         var deferred = null;
         var file = {name: null, url: null};
         var timeout = {id: null, delay: 3000};
+        var userTimezone = null;
         var $dom = {
             stages: $('ol.status-progress').children(),
             successStage: $('.item-progresspoint-success'),
@@ -89,7 +90,7 @@ define(
          */
         var updateFeedbackList = function(currStageMsg) {
             var $checkmark, $curr, $prev, $next;
-            var date, stageMsg, successUnix, time;
+            var date, stageMsg, successUnix, time, zone;
 
             $checkmark = $dom.successStage.find('.icon');
             stageMsg = currStageMsg || '';
@@ -144,14 +145,15 @@ define(
 
             case STATE.SUCCESS:
                 successUnix = CourseImport.storedImport().date;
-                date = moment(successUnix).utc().format('MM/DD/YYYY');
-                time = moment(successUnix).utc().format('HH:mm');
+                date = momentTimezone.tz(successUnix, userTimezone).format('MM/DD/YYYY');
+                time = momentTimezone.tz(successUnix, userTimezone).format('HH:mm');
+                zone = momentTimezone.tz(userTimezone).format('Z');
 
                 _.map($dom.stages, completeStage);
 
                 $dom.successStage
                         .find('.item-progresspoint-success-date')
-                        .text('(' + date + ' at ' + time + ' UTC)');
+                        .text('(' + date + ' at ' + time + ' ' + zone +')');
 
                 break;
 
@@ -205,8 +207,9 @@ define(
          * If it wasn't already, marks the stored import as "completed",
          * and updates its date timestamp
          */
-        var success = function() {
+        var success = function(timezone) {
             current.state = STATE.SUCCESS;
+            userTimezone = timezone;
 
             if (CourseImport.storedImport().completed !== true) {
                 storeImport(true);
@@ -240,7 +243,7 @@ define(
              *
              * @param {int} [stage=0] Starting stage.
              */
-            pollStatus: function(stage, message) {
+            pollStatus: function(stage, message, userzone) {
                 if (current.state !== STATE.IN_PROGRESS) {
                     return;
                 }
@@ -248,7 +251,7 @@ define(
                 current.stage = stage || STAGE.UPLOADING;
 
                 if (current.stage === STAGE.SUCCESS) {
-                    success();
+                    success(userzone);
                 } else if (current.stage < STAGE.UPLOADING) { // Failed
                     error(message || gettext('Error importing course'));
                 } else { // In progress
@@ -256,7 +259,7 @@ define(
 
                     $.getJSON(file.url, function(data) {
                         timeout.id = setTimeout(function() {
-                            this.pollStatus(data.ImportStatus, data.Message);
+                            this.pollStatus(data.ImportStatus, data.Message, userzone);
                         }.bind(this), timeout.delay);
                     }.bind(this));
                 }
@@ -280,7 +283,7 @@ define(
              *
              * @return {jQuery promise}
              */
-            resume: function() {
+            resume: function(userzone) {
                 deferred = $.Deferred();
                 file = this.storedImport().file;
 
@@ -292,7 +295,7 @@ define(
                     if (current.stage !== STAGE.UPLOADING) {
                         current.state = STATE.IN_PROGRESS;
 
-                        this.pollStatus(current.stage, data.Message);
+                        this.pollStatus(current.stage, data.Message, userzone);
                     } else {
                         // An import in the upload stage cannot be resumed
                         error(gettext('There was an error with the upload'));

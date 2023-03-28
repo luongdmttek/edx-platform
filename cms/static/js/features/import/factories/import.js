@@ -10,7 +10,7 @@ define([
     'use strict';
 
     return {
-        Import: function(feedbackUrl, library) {
+        Import: function(feedbackUrl, library, userZone) {
             var dbError,
                 $bar = $('.progress-bar'),
                 $fill = $('.progress-fill'),
@@ -70,7 +70,7 @@ define([
                     $chooseBtn.hide();
                 }
 
-                Import.resume().then(onComplete);
+                Import.resume(userZone).then(onComplete);
             }
 
             $('#fileupload').fileupload({
@@ -145,7 +145,7 @@ define([
 
                         // Start feedback with delay so that current stage of
                         // import properly updates in session
-                        setTimeout(function() { Import.pollStatus(); }, 3000);
+                        setTimeout(function() { Import.pollStatus(null, null, userZone); }, 3000);
                     } else {
                         $bar.show();
                         $fill.width(percentVal).text(percentVal);
