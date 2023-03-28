@@ -2897,10 +2897,11 @@ def reset_due_date(request, course_id):
         return JsonResponse(
             _("Successfully removed invalid due date extension (unit has no due date).")
         )
-
-    user_timezone = timezone(UserPreference.get_value(request.user, 'time_zone'))
-    original_due_date = original_due_date.astimezone(user_timezone)
-    original_due_date_str = original_due_date.strftime('%Y-%m-%d %H:%M %Z')
+    user_timezone = UserPreference.get_value(request.user, 'time_zone')
+    if user_timezone is not None:
+        original_due_date_str = (original_due_date.astimezone(timezone(user_timezone))).strftime('%Y-%m-%d %H:%M %Z')
+    else:
+        original_due_date_str = original_due_date.strftime('%Y-%m-%d %H:%M UTC')
     return JsonResponse(_(
         'Successfully reset due date for student {0} for {1} '
         'to {2}').format(student.profile.name, _display_unit(unit),

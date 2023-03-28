@@ -90,10 +90,12 @@ def parse_datetime(datestr, user):
     UTC.
     """
     try:
-        # return dateutil.parser.parse(datestr).replace(tzinfo=UTC)
-        user_timezone = timezone(UserPreference.get_value(user, 'time_zone'))
-        datetime = dateutil.parser.parse(datestr)
-        return user_timezone.localize(datetime, is_dst=None)
+        user_timezone = UserPreference.get_value(user, 'time_zone')
+        if user_timezone is not None:
+            datetime = dateutil.parser.parse(datestr)
+            return user_timezone.localize(datetime, is_dst=None)
+        else:
+            return dateutil.parser.parse(datestr).replace(tzinfo=UTC)
     except ValueError:
         raise DashboardError(_("Unable to parse date: ") + datestr)  # lint-amnesty, pylint: disable=raise-missing-from
 
@@ -217,8 +219,12 @@ def dump_module_extensions(course, unit, user):
     header = [_("Username"), _("Full Name"), _("Extended Due Date")]
     data = []
     for username, fullname, due_date in api.get_overrides_for_block(course.id, unit.location):
-        due_date = due_date.astimezone(timezone(UserPreference.get_value(user, 'time_zone')))
-        data.append(dict(list(zip(header, (username, fullname, due_date.strftime('%Y-%m-%d %H:%M %Z'))))))
+        user_timezone = UserPreference.get_value(user, 'time_zone')
+        if user_timezone is not None:
+            due_date = (due_date.astimezone(timezone(user_timezone))).strftime('%Y-%m-%d %H:%M %Z')
+        else:
+            due_date = due_date.strftime('%Y-%m-%d %H:%M UTC')
+        data.append(dict(list(zip(header, (username, fullname, due_date)))))
     data.sort(key=operator.itemgetter(_("Username")))
     return {
         "header": header,
@@ -243,9 +249,13 @@ def dump_student_extensions(course, student, user):
         if location not in units:
             continue
         due = override['actual_date']
-        due = due.astimezone(timezone(UserPreference.get_value(user, 'time_zone')))
+        user_timezone = UserPreference.get_value(user, 'time_zone')
+        if user_timezone is not None:
+            due = (due.astimezone(timezone(user_timezone))).strftime("%Y-%m-%d %H:%M %Z")
+        else:
+            due = due.strftime("%Y-%m-%d %H:%M UTC")
         title = title_or_url(units[location])
-        data.append(dict(list(zip(header, (title, due.strftime("%Y-%m-%d %H:%M %Z"))))))
+        data.append(dict(list(zip(header, (title, due)))))
     data.sort(key=operator.itemgetter(_("Unit")))
     return {
         "header": header,
