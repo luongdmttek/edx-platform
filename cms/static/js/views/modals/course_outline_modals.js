@@ -376,6 +376,7 @@ define(['jquery', 'backbone', 'underscore', 'gettext', 'js/views/baseview',
         afterRender: function() {
             var timezone = this.model.get('user_timezone');
             this.$('.due-timezone').text('(' + momentTimezone.tz(timezone).format('z') + '):');
+            BaseDateEditor.prototype.afterRender.call(this);
         },
 
         getValue: function() {
