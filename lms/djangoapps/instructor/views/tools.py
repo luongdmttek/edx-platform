@@ -93,7 +93,7 @@ def parse_datetime(datestr, user):
         user_timezone = UserPreference.get_value(user, 'time_zone')
         if user_timezone is not None:
             datetime = dateutil.parser.parse(datestr)
-            return user_timezone.localize(datetime, is_dst=None)
+            return timezone(user_timezone).localize(datetime, is_dst=None)
         else:
             return dateutil.parser.parse(datestr).replace(tzinfo=UTC)
     except ValueError:
