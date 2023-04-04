@@ -252,7 +252,7 @@ else:
   </section>
 </div>
 <%static:webpack entry="Import">
-  Import('${import_status_url | n, js_escaped_string}', ${library | n, dump_js_escaped_json});
+  Import('${import_status_url | n, js_escaped_string}', ${library | n, dump_js_escaped_json}, ${user_zone | n, dump_js_escaped_json});
 </%static:webpack>
 </%block>
 

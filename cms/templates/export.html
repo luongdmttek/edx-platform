@@ -29,10 +29,11 @@ else:
 <%block name="requirejs">
   var courselikeHomeUrl = "${courselike_home_url | n, js_escaped_string}",
       is_library = ${library | n, dump_js_escaped_json},
-      statusUrl = "${status_url | n, js_escaped_string}";
+      statusUrl = "${status_url | n, js_escaped_string}",
+      userZone = ${user_zone | n, dump_js_escaped_json};
 
   require(["js/factories/export"], function(ExportFactory) {
-      ExportFactory(courselikeHomeUrl, is_library, statusUrl);
+      ExportFactory(courselikeHomeUrl, is_library, statusUrl, userZone);
   });
 </%block>
 

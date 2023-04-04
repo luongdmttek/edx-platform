@@ -2,7 +2,7 @@ define([
     'domReady', 'js/views/export', 'jquery', 'gettext'
 ], function(domReady, Export, $, gettext) {
     'use strict';
-    return function(courselikeHomeUrl, library, statusUrl) {
+    return function(courselikeHomeUrl, library, statusUrl, userZone) {
         var $submitBtn = $('.action-export'),
             unloading = false,
             previousExport = Export.storedExport(courselikeHomeUrl);
@@ -22,7 +22,7 @@ define([
                 data: {},
                 success: function(result, textStatus, xhr) {
                     if (xhr.status === 200) {
-                        setTimeout(function() { Export.pollStatus(result); }, 1000);
+                        setTimeout(function() { Export.pollStatus(result, userZone); }, 1000);
                     } else {
                         // It could be that the user is simply refreshing the page
                         // so we need to be sure this is an actual error from the server
@@ -46,7 +46,7 @@ define([
             if (previousExport.completed !== true) {
                 $submitBtn.hide();
             }
-            Export.resume(library).then(onComplete);
+            Export.resume(library, userZone).then(onComplete);
         }
 
         domReady(function() {

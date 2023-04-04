@@ -28,7 +28,7 @@ from django.utils.translation import ugettext as _
   <% format_string="MM/DD/YYYY HH:MM" %>
   <p>
     ## Translators: "format_string" is the string MM/DD/YYYY HH:MM, as that is the format the system requires.
-    ${_("Specify the extension due date and time (in UTC; please specify {format_string}).").format(format_string=format_string)}</p>
+    ${_("Specify the extension due date and time (please specify {format_string}).").format(format_string=format_string)}</p>
   <p><input type="text" name="due_datetime" 
            placeholder="${format_string}"/> <input type="text" name="reason" placeholder="${_('Reason for extension')}" size=40 />
   </p>

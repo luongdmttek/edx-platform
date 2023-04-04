@@ -12,10 +12,11 @@ from django.http import HttpResponseBadRequest
 from django.utils.translation import gettext as _
 from edx_when import api
 from opaque_keys.edx.keys import UsageKey
-from pytz import UTC
+from pytz import UTC, timezone
 
 from common.djangoapps.student.models import CourseEnrollment, get_user_by_username_or_email
 from openedx.core.djangoapps.schedules.models import Schedule
+from openedx.core.djangoapps.user_api.models import UserPreference
 
 
 class DashboardError(Exception):
@@ -83,13 +84,18 @@ def require_student_from_identifier(unique_student_identifier):
         )
 
 
-def parse_datetime(datestr):
+def parse_datetime(datestr, user):
     """
     Convert user input date string into an instance of `datetime.datetime` in
     UTC.
     """
     try:
-        return dateutil.parser.parse(datestr).replace(tzinfo=UTC)
+        user_timezone = UserPreference.get_value(user, 'time_zone')
+        if user_timezone is not None:
+            datetime = dateutil.parser.parse(datestr)
+            return timezone(user_timezone).localize(datetime, is_dst=None)
+        else:
+            return dateutil.parser.parse(datestr).replace(tzinfo=UTC)
     except ValueError:
         raise DashboardError(_("Unable to parse date: ") + datestr)  # lint-amnesty, pylint: disable=raise-missing-from
 
@@ -205,7 +211,7 @@ def set_due_date_extension(course, unit, student, due_date, actor=None, reason='
             api.set_date_for_block(course.id, block.location, 'due', None, user=student, reason=reason, actor=actor)
 
 
-def dump_module_extensions(course, unit):
+def dump_module_extensions(course, unit, user):
     """
     Dumps data about students with due date extensions for a particular module,
     specified by 'url', in a particular course.
@@ -213,7 +219,11 @@ def dump_module_extensions(course, unit):
     header = [_("Username"), _("Full Name"), _("Extended Due Date")]
     data = []
     for username, fullname, due_date in api.get_overrides_for_block(course.id, unit.location):
-        due_date = due_date.strftime('%Y-%m-%d %H:%M')
+        user_timezone = UserPreference.get_value(user, 'time_zone')
+        if user_timezone is not None:
+            due_date = (due_date.astimezone(timezone(user_timezone))).strftime('%Y-%m-%d %H:%M %Z')
+        else:
+            due_date = due_date.strftime('%Y-%m-%d %H:%M UTC')
         data.append(dict(list(zip(header, (username, fullname, due_date)))))
     data.sort(key=operator.itemgetter(_("Username")))
     return {
@@ -224,7 +234,7 @@ def dump_module_extensions(course, unit):
     }
 
 
-def dump_student_extensions(course, student):
+def dump_student_extensions(course, student, user):
     """
     Dumps data about the due date extensions granted for a particular student
     in a particular course.
@@ -239,7 +249,11 @@ def dump_student_extensions(course, student):
         if location not in units:
             continue
         due = override['actual_date']
-        due = due.strftime("%Y-%m-%d %H:%M")
+        user_timezone = UserPreference.get_value(user, 'time_zone')
+        if user_timezone is not None:
+            due = (due.astimezone(timezone(user_timezone))).strftime("%Y-%m-%d %H:%M %Z")
+        else:
+            due = due.strftime("%Y-%m-%d %H:%M UTC")
         title = title_or_url(units[location])
         data.append(dict(list(zip(header, (title, due)))))
     data.sort(key=operator.itemgetter(_("Unit")))

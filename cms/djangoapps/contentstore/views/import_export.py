@@ -39,6 +39,7 @@ from common.djangoapps.util.monitoring import monitor_import_failure
 from common.djangoapps.util.views import ensure_valid_course_key
 from xmodule.modulestore.django import modulestore  # lint-amnesty, pylint: disable=wrong-import-order
 
+from openedx.core.djangoapps.user_api.models import UserPreference
 from ..storage import course_import_export_storage
 from ..tasks import CourseExportTask, CourseImportTask, export_olx, import_olx
 from ..utils import reverse_course_url, reverse_library_url
@@ -97,7 +98,8 @@ def import_handler(request, course_key_string):
             context_name: courselike_module,
             'successful_import_redirect_url': successful_url,
             'import_status_url': status_url,
-            'library': isinstance(courselike_key, LibraryLocator)
+            'library': isinstance(courselike_key, LibraryLocator),
+            'user_zone': UserPreference.get_value(request.user, 'time_zone')
         })
     else:
         return HttpResponseNotFound()
@@ -329,6 +331,7 @@ def export_handler(request, course_key_string):
             'library': False
         }
     context['status_url'] = reverse_course_url('export_status_handler', course_key)
+    context['user_zone'] = UserPreference.get_value(request.user, 'time_zone')
 
     # an _accept URL parameter will be preferred over HTTP_ACCEPT in the header.
     requested_format = request.GET.get('_accept', request.META.get('HTTP_ACCEPT', 'text/html'))

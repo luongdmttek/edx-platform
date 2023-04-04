@@ -17022,10 +17022,10 @@ msgstr ""
 #. format the system requires.
 #: lms/templates/instructor/instructor_dashboard_2/extensions.html
 msgid ""
-"Specify the extension due date and time (in UTC; please specify "
+"Specify the extension due date and time (please specify "
 "{format_string})."
 msgstr ""
-"Xác định ngày giờ của hạn chót được gia hạn (theo múi giờ UTC; xin ghi rõ "
+"Xác định ngày giờ của hạn chót được gia hạn (xin ghi rõ "
 "{format_string})."
 
 #: lms/templates/instructor/instructor_dashboard_2/extensions.html

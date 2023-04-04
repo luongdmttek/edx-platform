@@ -41,6 +41,7 @@ from common.djangoapps.util.json_request import JsonResponse, expect_json
 from common.djangoapps.xblock_django.user_service import DjangoXBlockUserService
 from openedx.core.djangoapps.bookmarks import api as bookmarks_api
 from openedx.core.djangoapps.discussions.models import DiscussionsConfiguration
+from openedx.core.djangoapps.user_api.models import UserPreference
 from openedx.core.lib.gating import api as gating_api
 from openedx.core.lib.xblock_utils import hash_resource, request_token, wrap_xblock, wrap_xblock_aside
 from openedx.core.toggles import ENTRANCE_EXAMS
@@ -480,7 +481,8 @@ def xblock_outline_handler(request, usage_key_string):
                 root_xblock,
                 include_child_info=True,
                 course_outline=True,
-                include_children_predicate=lambda xblock: not xblock.category == 'vertical'
+                include_children_predicate=lambda xblock: not xblock.category == 'vertical',
+                user=request.user
             ))
     else:
         return Http404
@@ -1082,7 +1084,7 @@ def _get_module_info(xblock, rewrite_static_links=True, include_ancestor_info=Fa
 
         # Note that children aren't being returned until we have a use case.
         xblock_info = create_xblock_info(
-            xblock, data=data, metadata=own_metadata(xblock), include_ancestor_info=include_ancestor_info
+            xblock, data=data, metadata=own_metadata(xblock), include_ancestor_info=include_ancestor_info, user=xblock.published_by
         )
         if include_publishing_info:
             add_container_page_publishing_info(xblock, xblock_info)
@@ -1196,7 +1198,7 @@ def create_xblock_info(xblock, data=None, metadata=None, include_ancestor_info=F
     else:
         visibility_state = None
     published = modulestore().has_published_version(xblock) if not is_library_block else None
-    published_on = get_default_time_display(xblock.published_on) if published and xblock.published_on else None
+    published_on = get_default_time_display(xblock.published_on, user) if published and xblock.published_on else None
 
     # defining the default value 'True' for delete, duplicate, drag and add new child actions
     # in xblock_actions for each xblock.
@@ -1244,8 +1246,9 @@ def create_xblock_info(xblock, data=None, metadata=None, include_ancestor_info=F
         xblock_info['display_name'] = group_display_name if group_display_name else xblock_info['display_name']
     else:
         user_partitions = get_user_partition_info(xblock, course=course)
+        user_timezone = UserPreference.get_value(user, 'time_zone')
         xblock_info.update({
-            'edited_on': get_default_time_display(xblock.subtree_edited_on) if xblock.subtree_edited_on else None,
+            'edited_on': get_default_time_display(xblock.subtree_edited_on, user) if xblock.subtree_edited_on else None,
             'published': published,
             'published_on': published_on,
             'studio_url': xblock_studio_url(xblock, parent_xblock),
@@ -1255,7 +1258,7 @@ def create_xblock_info(xblock, data=None, metadata=None, include_ancestor_info=F
             'has_explicit_staff_lock': xblock.fields['visible_to_staff_only'].is_set_on(xblock),
             'start': xblock.fields['start'].to_json(xblock.start),
             'graded': xblock.graded,
-            'due_date': get_default_time_display(xblock.due),
+            'due_date': get_default_time_display(xblock.due, user),
             'due': xblock.fields['due'].to_json(xblock.due),
             'relative_weeks_due': xblock.relative_weeks_due,
             'format': xblock.format,
@@ -1266,6 +1269,7 @@ def create_xblock_info(xblock, data=None, metadata=None, include_ancestor_info=F
             'group_access': xblock.group_access,
             'user_partitions': user_partitions,
             'show_correctness': xblock.show_correctness,
+            'user_timezone': user_timezone,
         })
 
         if xblock.category == 'sequential':
@@ -1572,7 +1576,7 @@ def _get_release_date(xblock, user=None):
         xblock = _update_with_callback(xblock, user)
 
     # Treat DEFAULT_START_DATE as a magic number that means the release date has not been set
-    return get_default_time_display(xblock.start) if xblock.start != DEFAULT_START_DATE else None
+    return get_default_time_display(xblock.start, user) if xblock.start != DEFAULT_START_DATE else None
 
 
 def validate_and_update_xblock_due_date(xblock):

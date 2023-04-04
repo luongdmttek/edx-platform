@@ -2,9 +2,9 @@
  * Course export-related js.
  */
 define([
-    'jquery', 'underscore', 'gettext', 'moment', 'common/js/components/views/feedback_prompt',
+    'jquery', 'underscore', 'gettext', 'moment', 'moment-timezone', 'common/js/components/views/feedback_prompt',
     'edx-ui-toolkit/js/utils/html-utils', 'jquery.cookie'
-], function($, _, gettext, moment, PromptView, HtmlUtils) {
+], function($, _, gettext, moment, momentTimezone, PromptView, HtmlUtils) {
     'use strict';
 
     /** ******** Private properties ****************************************/
@@ -31,6 +31,7 @@ define([
     var isLibrary = false;
     var statusUrl = null;
     var successUnixDate = null;
+    var userTimezone = null;
     var timeout = {id: null, delay: 1000};
     var $dom = {
         downloadLink: $('#download-exported-button'),
@@ -57,7 +58,7 @@ define([
      */
     var updateFeedbackList = function(currStageMsg) {
         var $checkmark, $curr, $prev, $next;
-        var date, stageMsg, time;
+        var date, stageMsg, time, zone;
 
         $checkmark = $dom.successStage.find('.icon');
         stageMsg = currStageMsg || '';
@@ -111,14 +112,15 @@ define([
             break;
 
         case STATE.SUCCESS:
-            date = moment(successUnixDate).utc().format('MM/DD/YYYY');
-            time = moment(successUnixDate).utc().format('HH:mm');
+            date = momentTimezone.tz(successUnixDate, userTimezone).format('MM/DD/YYYY');
+            time = momentTimezone.tz(successUnixDate, userTimezone).format('HH:mm');
+            zone = momentTimezone.tz(userTimezone).format('Z');
 
             _.map($dom.stages, completeStage);
 
             $dom.successStage
                     .find('.item-progresspoint-success-date')
-                    .text('(' + date + ' at ' + time + ' UTC)');
+                    .text('(' + date + ' at ' + time + ' ' + zone +')');
 
             break;
 
@@ -207,8 +209,9 @@ define([
          * If it wasn't already, marks the stored export as "completed",
          * and updates its date timestamp
          */
-        success: function() {
+        success: function(timezone) {
             current.state = STATE.SUCCESS;
+            userTimezone = timezone;
 
             if (this.storedExport().completed !== true) {
                 storeExport(true);
@@ -227,7 +230,7 @@ define([
          *
          * @param {int} [stage=0] Starting stage.
          */
-        pollStatus: function(data) {
+        pollStatus: function(data, userzone) {
             var editUnitUrl = null,
                 msg = data;
             if (current.state !== STATE.IN_PROGRESS) {
@@ -238,7 +241,7 @@ define([
 
             if (current.stage === STAGE.SUCCESS) {
                 current.downloadUrl = data.ExportOutput;
-                this.success();
+                this.success(userzone);
             } else if (current.stage < STAGE.PREPARING) { // Failed
                 if (data.ExportError) {
                     msg = data.ExportError;
@@ -254,7 +257,7 @@ define([
 
                 $.getJSON(statusUrl, function(result) {
                     timeout.id = setTimeout(function() {
-                        this.pollStatus(result);
+                        this.pollStatus(result, userzone);
                     }.bind(this), timeout.delay);
                 }.bind(this));
             }
@@ -280,7 +283,7 @@ define([
          *
          * @return {jQuery promise}
          */
-        resume: function(library) {
+        resume: function(library, userzone) {
             deferred = $.Deferred();
             isLibrary = library;
             statusUrl = this.storedExport().statusUrl;
@@ -291,7 +294,7 @@ define([
 
                 displayFeedbackList();
                 current.state = STATE.IN_PROGRESS;
-                this.pollStatus(data);
+                this.pollStatus(data, userzone);
             }.bind(this));
 
             return deferred.promise();
