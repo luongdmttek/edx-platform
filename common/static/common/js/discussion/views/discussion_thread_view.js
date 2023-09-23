@@ -144,7 +144,7 @@
                 this.delegateEvents();
                 this.renderShowView();
                 this.renderAttrs();
-                this.$('span.timeago').timeago();
+                // this.$('span.timeago').timeago();
                 this.makeWmdEditor('reply-body');
                 this.renderAddResponseButton();
                 this.responses.on('add', function(response) {

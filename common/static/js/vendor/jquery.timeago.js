@@ -64,8 +64,13 @@
       var years = days / 365;
 
       function substitute(stringOrFunction, number) {
+        console.log("substitute number: ", number)
+        console.log("substitute stringOrFunction: ", stringOrFunction)
         var string = $.isFunction(stringOrFunction) ? stringOrFunction(number, distanceMillis) : stringOrFunction;
         var value = ($l.numbers && $l.numbers[number]) || number;
+        console.log("substitute string: ", string)
+        console.log("substitute value: ", value)
+        console.log("substitute string.replace: ", string.replace(/%d/i, value))
         return string.replace(/%d/i, value);
       }
 
@@ -80,7 +85,7 @@
         days < 365 && substitute($l.months, Math.round(days / 30)) ||
         years < 1.5 && substitute($l.year, 1) ||
         substitute($l.years, Math.round(years));
-
+      console.log("words: ", words)
       return $.trim(format.replace(/%s/i, words));
     },
     parse: function(iso8601) {
@@ -121,22 +126,28 @@
   }
 
   function prepareData(element) {
+    console.log("prepareData element: ", element)
     element = $(element);
     if (!element.data("timeago")) {
       element.data("timeago", { datetime: $t.datetime(element) });
       var text = $.trim(element.text());
+      console.log("prepareData text: ", text)
       if (text.length > 0 && !($t.isTime(element) && element.attr("title"))) {
         element.attr("title", text);
+        console.log("prepareData element.attr: ", element.attr("title", text))
       }
     }
     return element.data("timeago");
   }
 
   function inWords(date) {
+    console.log("inWords date: ", date)
+    console.log("inWords distance:", $t.inWords(distance(date)))
     return $t.inWords(distance(date));
   }
 
   function distance(date) {
+    console.log("distance new: ", new Date().getTime() - date.getTime())
     return (new Date().getTime() - date.getTime());
   }
 
