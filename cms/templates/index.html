@@ -21,6 +21,172 @@ from openedx.core.djangolib.js_utils import (
   });
 </%block>
 
+<%block name="course_search_filter">
+<script type="text/javascript">
+  $(document).ready(function() {
+    // Init variables
+    courseRunId = '#filter-course-run';
+    courseOrgId = '#filter-course-org';
+    archivedRunId = '#filter-archived-run';
+    archivedOrgId = '#filter-archived-org';
+    searchCourseId = '#search-course';
+    tabCourseId = '#react-course-listing';
+    libraryFilterId = '#filter-library';
+    statusId = '#filter-library';
+    searchLibraryId = '#search-library';
+    tabLibraryId = '#react-library-listing';
+
+    // Init select2
+    $(courseRunId).select2({
+      width: '200px'
+    });
+    $(courseOrgId).select2({
+      width: '200px'
+    });
+    $(archivedRunId).select2({
+      width: '200px'
+    });
+    $(archivedOrgId).select2({
+      width: '200px'
+    });
+
+    // Functions
+    ConvertStringToCssClass = function(key) {
+      return '.' + key;
+    }
+    ProcessingCourses = function (orgValue, runValue, searchId, tabId) {
+      $(tabId + ' .list-courses li').hide()
+      if(runValue != 'all' && orgValue != 'all') {
+        $(tabId + ' .list-courses li' + ConvertStringToCssClass(orgValue) + ConvertStringToCssClass(runValue)).show()
+      }
+      else if(runValue != 'all' && orgValue == 'all') {
+        $(tabId + ' .list-courses li' + ConvertStringToCssClass(runValue)).show()
+      }
+      else if(runValue == 'all' && orgValue != 'all') {
+        $(tabId + ' .list-courses li' + ConvertStringToCssClass(orgValue)).show()
+      }
+      else {
+        $(tabId + ' .list-courses li').show()
+      }
+      ProcessingSearchText(tabId, searchId)
+    }
+    AddLibraryClass = function (tabId) {
+      $(tabId+" li.course-item").each(function(i, e) {
+        patternType = ['official', 'archived']
+        libraryType = $(this).context.outerText.toLocaleLowerCase();
+        index = libraryType.indexOf(']');
+        libraryType = libraryType.slice(1, index);
+        if (index > 0 && patternType.includes(libraryType)) {
+          $(this).addClass(libraryType);
+        }
+        else {
+          $(this).addClass('personal');
+        }
+      });
+    }
+    ProcessingLibrary = function (statusValue, searchId, tabId) {
+      $(tabId + ' .list-courses li').hide()
+      $(tabId + ' .list-courses li' + ConvertStringToCssClass(statusValue)).show()
+      ProcessingSearchText(tabId, searchId)
+    }
+    ProcessingSearchText = function(tabId, searchId) {
+      searchString = $(searchId).val();
+      $(tabId + " li.course-item").each(function(index, elem) {
+        isShow = $(this).css('display')
+        if(isShow == 'none') {
+          return;
+        }
+
+        content = elem.getElementsByTagName('h3')[0].textContent.toLowerCase();
+        if(!content.includes(searchString)) {
+          $(this).hide()
+        }
+      });
+      DataInfo(tabId)
+    }
+    DataInfo = function (tabId) {
+      count = 0
+      $(tabId + " li.course-item").each(function(index, elem) {
+        isShow = $(this).css('display')
+        if(isShow != 'none') {
+          count ++;
+        }
+      })
+
+      count == 0 ? $('#no-item').show() : $('#no-item').hide();
+    }
+
+    // Events
+    initCourseEvent = function(runId, orgId, searchId, tabId) {
+      // DataInfo(tabId)
+      $(runId).on('change', function (e) {
+        ProcessingCourses($(orgId).val(), $(this).val(), searchId, tabId)
+      });
+      $(orgId).on('change', function (e) {
+        ProcessingCourses($(this).val(), $(runId).val(), searchId, tabId)
+      });
+      $(searchId).on('input', function (e) {
+        org = $(orgId).val();
+        run = $(runId).val();
+        searchString = $(this).val();
+        ProcessingCourses(org, run, searchId, tabId)
+        if(searchString.length != 0) {
+          ProcessingSearchText(tabId, searchId);
+        }
+      })
+    }
+    initLibraryEvent = function(statusId, searchId, tabId) {
+      $(statusId).on('change', function (e) {
+        ProcessingLibrary($(this).val(), searchId, tabId)
+      });
+      $(searchId).on('input', function (e) {
+        searchString = $(this).val();
+        ProcessingLibrary($(statusId).val(), searchId, tabId)
+        if(searchString.length != 0) {
+          ProcessingSearchText(tabId, searchId);
+        }
+      })
+    }
+
+    // Tabs click
+    $('#course-index-tabs li').on('click', function (e) {
+      name = $(this).attr('class');
+      switch (name) {
+        case 'courses-tab':
+          tabId = '#react-course-listing';
+          searchId = '#search-course';
+          runId = courseRunId;
+          orgId = courseOrgId;
+          initCourseEvent(runId, orgId, searchId, tabId);
+          DataInfo(tabId)
+          break;
+        case 'archived-courses-tab':
+          tabId = '#react-archived-course-listing';
+          searchId = '#search-archived';
+          runId = archivedRunId;
+          orgId = archivedOrgId;
+          initCourseEvent(runId, orgId, searchId, tabId);
+          DataInfo(tabId)
+          break;
+        case 'libraries-tab':
+          tabId = '#react-library-listing'
+          searchId = '#search-library';
+          filterId = libraryFilterId;
+          initLibraryEvent(filterId, searchId, tabId);
+          DataInfo(tabId)
+          break;
+      }
+    })
+
+    // Init
+    initCourseEvent(courseRunId, courseOrgId, searchCourseId, tabCourseId)
+    initLibraryEvent(libraryFilterId, searchLibraryId, tabLibraryId)
+    AddLibraryClass(tabLibraryId)
+    $('#no-item').hide()
+  })
+</script>
+</%block>
+
 <%block name="content">
 <div class="wrapper-mast wrapper">
   <header class="mast has-actions">

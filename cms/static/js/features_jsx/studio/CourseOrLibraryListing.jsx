@@ -10,6 +10,20 @@ export function CourseOrLibraryListing(props) {
     const linkClass = props.linkClass;
     const idBase = props.idBase;
 
+    const courseRun = props.items.filter((item, index, self) => {
+        return index === self.findIndex((t) => (
+            t.run === item.run
+          ))
+        }
+    )
+
+    const courseOrg = props.items.filter((item, index, self) => {
+        return index === self.findIndex((t) => (
+            t.org === item.org
+          ))
+        }
+    )
+
     const renderCourseMetadata = (item, i) => (
         <div>
             <h3 className="course-title" id={`title-${idBase}-${i}`}>{item.display_name}</h3>
@@ -36,11 +50,54 @@ export function CourseOrLibraryListing(props) {
     );
 
     return (
+        <>
+        { courseRun[0].hasOwnProperty('run') ? 
+            <>
+                <input type="text" id={`search-${idBase}`} placeholder="Search"></input>
+                <div className="course-status">
+                <span id="course-label">Course run:</span>
+                <select name="filter_course_run" id={`filter-${idBase}-run`}>
+                    <option key="all" value="all">All</option>
+                    {
+                        courseRun.map((item, i) => (
+                            <option key={i} value={item.run}>{item.run}</option>
+                        ))
+                    }
+                </select>
+                </div>
+                <div className="org-status">
+                <span>Organization:</span>
+                <select name="filter_course_org" id={`filter-${idBase}-org`}>
+                    <option key="all" value="all">All</option>
+                    {
+                        courseOrg.map((item, i) => (
+                            <option key={i} value={item.org}>{item.org}</option>
+                        ))
+                    }
+                </select>
+                </div>
+            </> :
+            <>
+                <label className="library-note">
+                    Libraries with prefixes [OFFICIAL] and [ACHIEVED] will go to corresponding filters, libraries without these prefixes will to the individual filter.
+                </label>
+                <input type="text" id={`search-${idBase}`} placeholder="Search"></input>
+                <div className="library-status">
+                <select name="filter_library" id={`filter-${idBase}`}>
+                    <option value="official">Official</option>
+                    <option value="archived">Archived</option>
+                    <option value="personal">Personal</option>
+                </select>
+                </div>
+            </>
+        }
         <ul className="list-courses">
             {
                 props.items.map((item, i) =>
                     (
-                        <li key={i} className="course-item" data-course-key={item.course_key}>
+                        <li key={i} 
+                            className={ item.run ? `course-item ${item.run} ${item.org}` : `course-item` } 
+                            data-course-key={item.course_key}>
                             {item.url
                                 ? (
                                     <a className={linkClass} href={item.url}>
@@ -77,6 +134,7 @@ export function CourseOrLibraryListing(props) {
                 )
             }
         </ul>
+        </>
     );
 }
 
