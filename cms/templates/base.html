@@ -89,6 +89,10 @@ from openedx.core.release import RELEASE_LINE
 
     <%static:webpack entry="commons"/>
 
+    <!-- Select2 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/3.5.4/select2.min.css" /> 
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/select2/3.5.4/select2.min.js"></script>
+    
     <script type="text/javascript">
       window.baseUrl = "${settings.STATIC_URL | n, js_escaped_string}";
       require.config({
@@ -98,6 +102,8 @@ from openedx.core.release import RELEASE_LINE
 
     <script type="text/javascript" src="${static.url("cms/js/require-config.js")}"></script>
 
+    <%block name="course_search_filter"></%block>
+    
     <!-- view -->
     <div class="wrapper wrapper-view" dir="${static.dir_rtl()}">
       <% online_help_token = self.online_help_token() if hasattr(self, 'online_help_token') else None %>
