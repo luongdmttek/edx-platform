@@ -21,6 +21,259 @@ from openedx.core.djangolib.js_utils import (
   });
 </%block>
 
+<%block name="course_search_filter">
+<script type="text/javascript">
+  $(document).ready(function() {
+
+    // Init variables
+    courseRunId = '#filter-course-run';
+    courseOrgId = '#filter-course-org';
+    searchCourseId = '#search-course';
+    tabCourseId = '#react-course-listing';
+
+    archivedRunId = '#filter-archived-course-run';
+    archivedOrgId = '#filter-archived-course-org';
+    searchArchiveCourseId = '#search-archived-course';
+    tabArchiveCourseId = '#react-archived-course-listing';
+    
+    originalCourseRunId = '#filter-original-course-run';
+    originalCourseOrgId = '#filter-original-course-org';
+    searchOriginalCourseId = '#search-original-course';
+    tabOriginalCourseId = '#react-original-course-listing';
+
+    statusFilterId = '#filter-library';
+    searchLibraryId = '#search-library';
+    tabLibraryId = '#react-library-listing';
+
+    timeOutCourse = null;
+    timeOutLibrary = null;
+    waitTime = 500;
+
+    // Init select2 dropdown
+    $("#filter-course-run").select2({
+      width: '200px'
+    });
+    $("#filter-course-org").select2({
+      width: '200px'
+    });
+    $("#filter-archived-course-run").select2({
+      width: '200px'
+    });
+    $("#filter-archived-course-org").select2({
+      width: '200px'
+    });
+    $("#filter-original-course-run").select2({
+      width: '200px'
+    });
+    $("#filter-original-course-org").select2({
+      width: '200px'
+    });
+
+    // Functions
+    AddLibraryClass = function (tabId) {
+      $(tabId+" li.course-item").each(function(i, e) {
+        patternType = ['official', 'archived']
+        libraryType = $(this).context.outerText.toLocaleLowerCase();
+        index = libraryType.indexOf(']');
+        libraryType = libraryType.slice(1, index);
+        if (index > 0 && patternType.includes(libraryType)) {
+          $(this).addClass(libraryType);
+        }
+        else {
+          $(this).addClass('personal');
+        }
+      });
+    }
+    AddCoursesAndArchivedClass = function (tabId, runId, orgId) {
+      courseRunValues  = [];
+      orgValues = [];
+      
+      $(tabId+" li.course-item").each(function(i, e) {
+        // courseKey = ($(this).attr('data-course-key')).split('+');
+        // courseRun = courseKey[2];
+        // org = (courseKey[0].split(':'))[1];
+        courseRun = ($(this).find('.course-run')[0].childNodes[1].textContent);
+        org = ($(this).find('.course-org')[0].childNodes[1].textContent);
+        $(this).addClass(org);
+        $(this).addClass(courseRun);
+        if($.inArray(org, orgValues) == -1)
+        {
+          orgValues.push(org);
+        }
+
+        if($.inArray(courseRun, courseRunValues) == -1)
+        {
+          courseRunValues.push(courseRun);
+        }
+      });
+      
+      courseRunValues.sort(); 
+      orgValues.sort();
+
+      orgValues.forEach(function(item) {
+        $(orgId).append($('<option>', {value: item, text: item}));
+      });
+      courseRunValues.forEach(function(item) {
+        $(runId).append($('<option>', {value: item, text: item}));
+      });
+    }
+    ConvertStringToCssClass = function(key) {
+      return '.' + key;
+    }
+    ShowHideInfo = function (tabId) {
+      count = 0
+      $(tabId + " li.course-item").each(function(index, elem) {
+        isShow = $(this).css('display')
+        if(isShow != 'none') {
+          count ++;
+        }
+      })
+
+      count == 0 ? $('#no-item').show() : $('#no-item').hide();
+    }
+    ProcessingCourses = function (runId, orgId, searchId, tabId) {
+      runValue = $(runId).val();
+      orgValue = $(orgId).val();
+      searchValue = $(searchId).val().toLowerCase();;
+      $(tabId + ' .list-courses li').hide();
+
+      if (runValue != 'all' && orgValue != 'all') {
+        $(tabId + ' .list-courses li' + ConvertStringToCssClass(orgValue) + ConvertStringToCssClass(runValue)).show()
+      }
+      else if (runValue != 'all' && orgValue == 'all') {
+        $(tabId + ' .list-courses li' + ConvertStringToCssClass(runValue)).show()
+      }
+      else if (runValue == 'all' && orgValue != 'all') {
+        $(tabId + ' .list-courses li' + ConvertStringToCssClass(orgValue)).show()
+      }
+      else {
+        $(tabId + ' .list-courses li').show()
+      }
+
+      if (searchValue.length != 0) {
+        $(tabId + " li.course-item").each(function(index, elem) {
+          content = elem.getElementsByTagName('h3')[0].textContent.toLowerCase();
+          content.includes(searchValue) && $(this).css('display') == 'list-item' ? $(this).show() : $(this).hide();
+        })
+      }
+
+      ShowHideInfo(tabId);
+    }
+    ProcessingLibrary = function (statusId, searchId, tabId) {
+      if ($(statusId).val() == undefined) {
+        $('#no-item').hide();
+      } 
+      else {
+        statusValue = $(statusId).val();
+        searchValue = $(searchId).val().toLowerCase();
+        $(tabId + ' .list-courses li').hide()
+        $(tabId + ' .list-courses li' + ConvertStringToCssClass(statusValue)).show()
+        
+        if (searchValue.length != 0) {
+          $(tabId + " li.course-item").each(function(index, elem) {
+            content = elem.getElementsByTagName('h3')[0].textContent.toLowerCase();
+            content.includes(searchValue) && $(this).css('display') == 'list-item' ? $(this).show() : $(this).hide();
+          })
+        }
+  
+        ShowHideInfo(tabId);
+      }
+    }
+    ProcessingSearchCourse = function(runId, orgId, searchId, tabId) {
+      runValue = $(runId).val();
+      orgValue = $(orgId).val();
+      searchValue = $(searchId).val().toLowerCase();
+
+      // wait user typing stop and run search
+      clearTimeout(timeOutCourse);
+      timeOutCourse = setTimeout(() => {
+        ProcessingCourses(runId, orgId, searchId, tabId);
+        if (searchValue.length != 0) {
+          $(tabId + " li.course-item").each(function(index, elem) {
+            content = elem.getElementsByTagName('h3')[0].textContent.toLowerCase();
+            content.includes(searchValue) && $(this).css('display') == 'list-item' ? $(this).show() : $(this).hide();
+          })
+        }
+        ShowHideInfo(tabId)
+      }, waitTime);
+    }
+    ProcessingSearchLibraryText = function(statusId, searchId, tabId) {
+      statusValue = $(statusId).val();
+      searchValue = $(searchId).val().toLowerCase();
+
+      // wait user typing stop and run search
+      clearTimeout(timeOutLibrary);
+      timeOutLibrary = setTimeout(() => {
+        ProcessingLibrary(statusId, searchId, tabId);
+        if (searchValue.length != 0) {
+          $(tabId + " li.course-item").each(function(index, elem) {
+            content = elem.getElementsByTagName('h3')[0].textContent.toLowerCase();
+            content.includes(searchValue) && $(this).css('display') == 'list-item' ? $(this).show() : $(this).hide();
+          })
+        }
+        ShowHideInfo(tabId)
+      }, waitTime);
+    }
+    
+    // Events
+    initCourseEvent = function(runId, orgId, searchId, tabId) {
+      $(runId).on('change', function (e) {
+        ProcessingCourses($(this), orgId, searchId, tabId)
+      });
+      $(orgId).on('change', function (e) {
+        ProcessingCourses(runId, $(this), searchId, tabId)
+      });
+      $(searchId).on('keyup', function (e) {
+        ProcessingSearchCourse(runId, orgId, searchId, tabId);
+      })
+    }
+    initLibraryEvent = function(statusId, searchId, tabId) {
+      $(statusId).on('change', function (e) {
+        ProcessingLibrary($(this), searchId, tabId)
+      });
+      $(searchId).on('keyup', function (e) {
+        ProcessingSearchLibraryText(statusId, $(this), tabId)
+      })
+    }
+
+    // Process tabs click
+    $('#course-index-tabs li').on('click', function (e) {
+      name = $(this).attr('class');
+      switch (name) {
+        case 'courses-tab':
+          ShowHideInfo(tabCourseId)
+          break;
+        case 'archived-courses-tab':
+          ShowHideInfo(tabArchiveCourseId)
+          break;
+        case 'original-courses-tab':
+          ShowHideInfo(tabOriginalCourseId)
+          break;
+        case 'libraries-tab':
+          $(statusFilterId).val() == undefined ? $('#no-item').hide() : ShowHideInfo(tabLibraryId);
+          break;
+      }
+    })
+    
+    //// Init methods to load page ////
+    ShowHideInfo(tabCourseId);
+    //// Courses
+    // AddCoursesAndArchivedClass(tabCourseId, courseRunId, courseOrgId);
+    initCourseEvent(courseRunId, courseOrgId, searchCourseId, tabCourseId);
+    //// Archived courses
+    // AddCoursesAndArchivedClass(tabArchiveCourseId, archivedRunId, archivedOrgId);
+    initCourseEvent(archivedRunId, archivedOrgId, searchArchiveCourseId, tabArchiveCourseId);
+    //// Original courses
+    // AddCoursesAndArchivedClass(tabOriginalCourseId, originalCourseRunId, originalCourseOrgId);
+    initCourseEvent(originalCourseRunId, originalCourseOrgId, searchOriginalCourseId, tabOriginalCourseId);
+    //// Library
+    // AddLibraryClass(tabLibraryId);
+    ProcessingLibrary(statusFilterId, searchLibraryId, tabLibraryId);
+    initLibraryEvent(statusFilterId, searchLibraryId, tabLibraryId);
+  })
+</script>
+</%block>
+
 <%block name="content">
 <div class="wrapper-mast wrapper">
   <header class="mast has-actions">
@@ -120,6 +373,11 @@ from openedx.core.djangolib.js_utils import (
                       strong_end=HTML('</strong>'),
                   )}</span>
                   <span class="tip tip-error is-hiding" id="tip-error-new-course-run"></span>
+                </li>
+
+                <li class="field" style="display: contents;" id="field-course-original">
+                  <input class="new-course-original" id="new-course-original" type="checkbox" name="new-course-original" />
+                  <label>${_("Course original")}</label>
                 </li>
               </ol>
 
@@ -347,6 +605,14 @@ from openedx.core.djangolib.js_utils import (
         </li>
         % endif
 
+        <li class="original-courses-tab">
+          % if split_studio_home and active_tab == 'libraries':
+              <a href="${reverse('home') + '#original-courses-tab' } " >${_("Original Courses")}</a>
+          % else:
+              <a href="#">${_("Original Courses")}</a>
+          % endif
+        </li>
+
         % if libraries_enabled:
             % if redirect_to_library_authoring_mfe:
             <li><a href="${library_authoring_mfe_url}">${_("Libraries")}</a></li>
@@ -501,11 +767,27 @@ from openedx.core.djangolib.js_utils import (
           props={
             'items': sorted(archived_courses, key=lambda s: s['display_name'].lower() if s['display_name'] is not None else ''),
             'linkClass': 'course-link',
-            'idBase': 'archived',
+            'idBase': 'archived-course',
             'allowReruns': allow_course_reruns and rerun_creator_status and course_creator_status=='granted'
           }
         )}
         % endif
+      </div>
+      %endif
+
+      %if len(original_courses) > 0 or optimization_enabled:
+      <div class="original-courses react-original-course-listing original-courses-tab">
+        ${static.renderReact(
+          component="CourseOrLibraryListing",
+          id="react-original-course-listing",
+          props={
+            'items': sorted(original_courses, key=lambda s: s['display_name'].lower() if s['display_name'] is not None else ''),
+            'linkClass': 'course-link',
+            'idBase': 'original-course',
+            'allowReruns': allow_course_reruns and rerun_creator_status and course_creator_status=='granted'
+          }
+        )}
+        
       </div>
       %endif
 
@@ -552,6 +834,9 @@ from openedx.core.djangolib.js_utils import (
       </div>
       %endif
 
+      <div id="no-item" class="item-note">
+        <p class="item-note-info">${_("There is no data.")}</p>
+      </div>
     </article>
     <aside class="content-supplementary" role="complementary">
       <div class="bit">

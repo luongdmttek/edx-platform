@@ -74,6 +74,7 @@ class CourseOverview(TimeStampedModel):
     _location = UsageKeyField(max_length=255)
     org = models.TextField(max_length=255, default='outdated_entry')
     display_name = models.TextField(null=True)
+    original = models.BooleanField(default=False)
     display_number_with_default = models.TextField()
     display_org_with_default = models.TextField()
 
@@ -207,6 +208,7 @@ class CourseOverview(TimeStampedModel):
         course_overview._location = course.location  # lint-amnesty, pylint: disable=protected-access
         course_overview.org = course.location.org
         course_overview.display_name = display_name
+        course_overview.original = course.original
         course_overview.display_number_with_default = course.display_number_with_default
         course_overview.display_org_with_default = course.display_org_with_default
 

@@ -363,6 +363,13 @@ class CourseFields:  # lint-amnesty, pylint: disable=missing-class-docstring
         display_name=_("Course Display Name"),
         scope=Scope.settings,
     )
+    original = Boolean(
+        display_name=_("Original course"),
+        help=_(
+            "Enter true or false. If true, the course appears Original course tab in dashbard."
+        ),
+        scope=Scope.settings
+    )
     course_edit_method = String(
         display_name=_("Course Editor"),
         help=_('Enter the method by which this course is edited ("XML" or "Studio").'),
@@ -1545,10 +1552,10 @@ class CourseSummary:
     A lightweight course summary class, which constructs split/mongo course summary without loading
     the course. It is used at cms for listing courses to global staff user.
     """
-    course_info_fields = ['display_name', 'display_coursenumber', 'display_organization', 'end']
+    course_info_fields = ['display_name', 'display_coursenumber', 'display_organization', 'end', 'original']
 
     def __init__(self, course_locator, display_name="Empty", display_coursenumber=None, display_organization=None,
-                 end=None):
+                 end=None, original=None):
         """
         Initialize and construct course summary
 
@@ -1571,6 +1578,7 @@ class CourseSummary:
         self.display_coursenumber = display_coursenumber
         self.display_organization = display_organization
         self.display_name = display_name
+        self.original = original
 
         self.id = course_locator  # pylint: disable=invalid-name
         self.location = course_locator.make_usage_key('course', 'course')

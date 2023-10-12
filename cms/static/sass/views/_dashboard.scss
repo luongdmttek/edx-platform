@@ -318,6 +318,7 @@
   // ELEM: course listings
   .courses-tab,
   .archived-courses-tab,
+  .original-courses-tab,
   .libraries-tab {
     display: none;
 
@@ -328,6 +329,7 @@
 
   .courses,
   .libraries,
+  .original-courses,
   .archived-courses {
     .title {
       @extend %t-title6;
