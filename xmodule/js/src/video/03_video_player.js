@@ -106,11 +106,12 @@
             //     have to do repeated jQuery element selects.
             // eslint-disable-next-line no-underscore-dangle
             function _initialize(state) {
+                var isTouchDevice = window.onTouchBasedDevice() || '';
                 var youTubeId,
                     player,
                     userAgent,
                     commonPlayerConfig,
-                    eventToBeTriggered = 'loadedmetadata';
+                    eventToBeTriggered = /iP(hone|od)/i.test(isTouchDevice[0]) ? 'canplay' : 'loadedmetadata' ;
 
                 // The function is called just once to apply pre-defined configurations
                 // by student before video starts playing. Waits until the video's
@@ -130,6 +131,7 @@
                 }
 
                 state.videoPlayer.currentTime = 0;
+                console.log('onReady currentTime: '+ state.videoPlayer.currentTime)
 
                 state.videoPlayer.goToStartTime = true;
                 state.videoPlayer.stopAtEndTime = true;
@@ -342,7 +344,7 @@
             // ***************************************************************
 
             function destroy() {
-                var player = this.videoPlayer.player;
+                var isTouchDevice = window.onTouchBasedDevice() || '';
                 this.el.removeClass([
                     'is-unstarted', 'is-playing', 'is-paused', 'is-buffered',
                     'is-ended', 'is-cued'
@@ -355,7 +357,7 @@
                     this.resizer.destroy();
                 }
                 if (player && player.video) {
-                    player.video.removeEventListener('loadedmetadata', this.videoPlayer.onLoadMetadataHtml5, false);
+                    player.video.removeEventListener(/iP(hone|od)/i.test(isTouchDevice[0]) ? 'canplay' : 'loadedmetadata', this.videoPlayer.onLoadMetadataHtml5, false);
                 }
                 if (player && _.isFunction(player.destroy)) {
                     player.destroy();
@@ -568,6 +570,9 @@
 
                 dfd.resolve();
 
+                var isTouchDevice = window.onTouchBasedDevice() || '';
+                console.log(isTouchDevice);
+
                 this.el.on('speedchange', function(event, speed) {
                     _this.videoPlayer.onSpeedChange(speed);
                 });
@@ -668,6 +673,9 @@
                 // this.duration will be set initially only if duration is coming from edx-val
                 this.duration = this.duration || duration;
 
+                console.log('time: ' + time)
+                console.log('goToStartTime: ' + this.videoPlayer.goToStartTime)
+                console.log('time+goToStartTime: '+ time > 0 && this.videoPlayer.goToStartTime)
                 if (time > 0 && this.videoPlayer.goToStartTime) {
                     this.videoPlayer.seekTo(time);
                 }
