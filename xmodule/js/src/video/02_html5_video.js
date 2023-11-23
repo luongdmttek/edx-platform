@@ -136,6 +136,7 @@
                 };
 
                 Player.prototype.pauseVideo = function() {
+                    console.log('pause');
                     this.video.pause();
                 };
 
@@ -145,6 +146,7 @@
                 value <= this.video.duration &&
                 value >= 0
                     ) {
+                        console.log('html5 seekTo: ' + value)
                         this.video.currentTime = value;
                     }
                 };
@@ -160,6 +162,7 @@
                 };
 
                 Player.prototype.playVideo = function() {
+                    console.log('play');
                     this.video.play();
                 };
 
@@ -224,7 +227,7 @@
                 };
 
                 Player.prototype.destroy = function() {
-                    this.video.removeEventListener('loadedmetadata', this.onLoadedMetadata, false);
+                    this.video.removeEventListener('canplay', this.onLoadedMetadata, false);
                     this.video.removeEventListener('play', this.onPlay, false);
                     this.video.removeEventListener('playing', this.onPlaying, false);
                     this.video.removeEventListener('pause', this.onPause, false);
@@ -251,23 +254,27 @@
                 Player.prototype.onLoadedMetadata = function() {
                     this.playerState = HTML5Video.PlayerState.PAUSED;
                     if ($.isFunction(this.config.events.onReady)) {
+                        console.log('LoadedMetadata in');
                         this.onReady();
                     }
                 };
 
                 Player.prototype.onPlay = function() {
+                    console.log('onPlay')
                     this.playerState = HTML5Video.PlayerState.BUFFERING;
                     this.callStateChangeCallback();
                     this.videoOverlayEl.addClass('is-hidden');
                 };
 
                 Player.prototype.onPlaying = function() {
+                    console.log('onPlaying')
                     this.playerState = HTML5Video.PlayerState.PLAYING;
                     this.callStateChangeCallback();
                     this.videoOverlayEl.addClass('is-hidden');
                 };
 
                 Player.prototype.onPause = function() {
+                    console.log('onPause')
                     this.playerState = HTML5Video.PlayerState.PAUSED;
                     this.callStateChangeCallback();
                     this.showPlayButton();
@@ -349,7 +356,7 @@
                     // When the <video> tag has been processed by the browser, and it
                     // is ready for playback, notify other parts of the VideoPlayer,
                     // and initially pause the video.
-                    this.video.addEventListener('loadedmetadata', this.onLoadedMetadata, false);
+                    this.video.addEventListener('canplay', this.onLoadedMetadata, false);
                     this.video.addEventListener('play', this.onPlay, false);
                     this.video.addEventListener('playing', this.onPlaying, false);
                     this.video.addEventListener('pause', this.onPause, false);
@@ -357,6 +364,7 @@
 
                     if (/iP(hone|od)/i.test(isTouch[0])) {
                         this.videoEl.prop('controls', true);
+                        // this.videoEl.attr('playsinline', '');
                     }
 
                     // Set video poster

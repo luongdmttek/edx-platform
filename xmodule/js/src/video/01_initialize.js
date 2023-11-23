@@ -35,22 +35,35 @@
                             if (state.isYoutubeType()) {
                                 state.parseSpeed();
                             }
-                            // On iPhones and iPods native controls are used.
-                            if (/iP(hone|od)/i.test(state.isTouch[0])) {
-                                _hideWaitPlaceholder(state);
-                                state.el.trigger('initialize', arguments);
+                            // // On iPhones and iPods native controls are used.
+                            // if (/iP(hone|od)/i.test(state.isTouch[0])) {
+                            //     _hideWaitPlaceholder(state);
+                            //     state.el.trigger('initialize', arguments);
 
-                                return false;
-                            }
+                            //     return false;
+                            // }
 
                             _initializeModules(state, i18n)
                                 .done(function() {
                                     // On iPad ready state occurs just after start playing.
                                     // We hide controls before video starts playing.
-                                    if (/iPad|Android/i.test(state.isTouch[0])) {
+                                    if (/iP(hone|od)/i.test(state.isTouch[0])) {
+                                        state.el.on('play', _.once(function() {
+                                            state.trigger('videoControl.hideControls', null);
+                                        }));
+                                        setTimeout(() => {
+                                            $('.btn-play').addClass('is-hidden');
+                                        }, 200);
+                                    } else if (/iPad|Android/i.test(state.isTouch[0])) {
                                         state.el.on('play', _.once(function() {
                                             state.trigger('videoControl.show', null);
                                         }));
+
+                                        /iPad/i.test(state.isTouch[0]) ?? 
+                                        setTimeout(() => {
+                                            $('.spinner').removeClass('is-initialized');
+                                            $('.btn-play').removeClass('is-hidden');
+                                        }, 4000);
                                     } else {
                                         // On PC show controls immediately.
                                         state.trigger('videoControl.show', null);
