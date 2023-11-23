@@ -30,6 +30,7 @@
             function _makeFunctionsPublic(state) {
                 var methodsDict = {
                     destroy: destroy,
+                    hide: hide,
                     hideControls: hideControls,
                     show: show,
                     showControls: showControls,
@@ -125,6 +126,11 @@
                     this.controlHideTimeout = setTimeout(this.videoControl.hideControls, this.videoControl.fadeOutTimeout);
                     this.controlShowLock = false;
                 }
+            }
+
+            function hide() {
+                this.videoControl.el.addClass('is-hidden');
+                this.el.trigger('controls:hide', arguments);
             }
 
             function hideControls() {
