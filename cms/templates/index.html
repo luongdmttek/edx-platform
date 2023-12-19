@@ -347,6 +347,16 @@ from openedx.core.djangolib.js_utils import (
         </li>
         % endif
 
+        % if original_courses:
+        <li class="original-courses-tab">
+          % if split_studio_home and active_tab == 'libraries':
+              <a href="${reverse('home') + '#original-courses-tab' } " >${_("Original Courses")}</a>
+          % else:
+              <a href="#">${_("Original Courses")}</a>
+          % endif
+        </li>
+        % endif
+
         % if libraries_enabled:
             % if redirect_to_library_authoring_mfe:
             <li><a href="${library_authoring_mfe_url}">${_("Libraries")}</a></li>
@@ -509,6 +519,42 @@ from openedx.core.djangolib.js_utils import (
       </div>
       %endif
 
+      %if len(original_courses) > 0:
+      <div class="original-courses react-original-course-listing original-courses-tab">
+        <div class="original-course-filter">
+          <div class="search-original-course">
+            <input type="text" id="search-original-course" placeholder="${_('Search')}">
+          </div>
+          <div class="original-course-status">
+            <span id="course-label">
+              ${_("Course run:")}
+            </span>
+            <select name="filter_course_run" id="filter-original-course-run">
+              <option value="all">${_("All")}</option>
+            </select>
+          </div>
+          <div class="original-org-status">
+            <span>
+              ${_("Organization:")}
+            </span>
+            <select name="filter_course_org" id="filter-original-course-org">
+              <option value="all">${_("All")}</option>
+            </select>
+          </div>
+        </div>
+        ${static.renderReact(
+          component="CourseOrLibraryListing",
+          id="react-original-course-listing",
+          props={
+            'items': sorted(original_courses, key=lambda s: s['display_name'].lower() if s['display_name'] is not None else ''),
+            'linkClass': 'course-link',
+            'idBase': 'original-course',
+            'allowReruns': allow_course_reruns and rerun_creator_status and course_creator_status=='granted'
+          }
+        )}  
+      </div>
+      %endif
+      
       %if len(libraries) > 0 or optimization_enabled:
       <div class="libraries react-library-listing libraries-tab ${ 'active' if active_tab == 'libraries' else ''}">
         ${static.renderReact(
