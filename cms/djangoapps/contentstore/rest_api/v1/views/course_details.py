@@ -8,6 +8,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from common.djangoapps.student.auth import has_studio_read_access
+from common.djangoapps.student.roles import CourseInstructorRole
 from openedx.core.djangoapps.models.course_details import CourseDetails
 from openedx.core.lib.api.view_utils import DeveloperErrorViewMixin, verify_course_exists, view_auth_classes
 from xmodule.modulestore.django import modulestore
@@ -102,6 +103,7 @@ class CourseDetailsView(DeveloperErrorViewMixin, APIView):
             self.permission_denied(request)
 
         course_details = CourseDetails.fetch(course_key)
+        course_details.is_instructor = CourseInstructorRole(course_key).has_user(request.user)
         serializer = CourseDetailsSerializer(course_details)
         return Response(serializer.data)
 

@@ -41,6 +41,7 @@ class CourseDetailsSerializer(serializers.Serializer):
     entrance_exam_id = serializers.CharField(allow_blank=True)
     entrance_exam_minimum_score_pct = serializers.CharField(allow_blank=True)
     instructor_info = InstructorsSerializer()
+    is_instructor = serializers.BooleanField()
     intro_video = serializers.CharField(allow_null=True)
     language = serializers.CharField(allow_null=True)
     learning_info = serializers.ListField(child=serializers.CharField(allow_blank=True))
