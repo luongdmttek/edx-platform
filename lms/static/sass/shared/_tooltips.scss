@@ -17,7 +17,7 @@
   p {
     @extend %ui-depth2;
 
-    background: $dark-gray;
+    background: rgba(51, 51, 51, 0.9);
     border-radius: ($baseline/5);
     color: $white;
     font-family: $font-family-sans-serif;
@@ -27,9 +27,9 @@
     position: absolute;
     text-shadow: 0 -1px 0 $black;
 
-    @include transition(all 0.1s $ease-in-out-quart 0s);
+    // @include transition(all 0.1s $ease-in-out-quart 0s);
 
-    white-space: pre;
+    white-space: normal;
     visibility: hidden;
     pointer-events: none;
     right: 0;
@@ -43,13 +43,13 @@
     }
 
     &::after {
-      background: $dark-gray;
+      background: rgba(51, 51, 51, 0.9);
       content: " ";
       display: block;
       height: ($baseline/2);
-      right: 18px;
+      right: 140px;
       position: absolute;
-      top: ($baseline + ($baseline/4));
+      // top: ($baseline + ($baseline/4));
 
       @include transform(rotate(45deg));
 
@@ -64,6 +64,10 @@
       margin-top: $margin-top;
       opacity: 1;
       visibility: visible;
+
+      top: -40px;
+      left: -120px;
+      right: -120px;
     }
   }
 }

@@ -425,6 +425,12 @@
         display: inline-block;
 
         @include tooltip-hover-style(-($baseline*2));
+
+        .tooltip-custom {
+          > span {
+            display: block
+          }
+        }
       }
     }
   }
