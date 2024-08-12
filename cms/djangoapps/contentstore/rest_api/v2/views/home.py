@@ -49,9 +49,14 @@ class HomePageCoursesViewV2(APIView):
     @apidocs.schema(
         parameters=[
             apidocs.string_parameter(
-                "org",
+                "org_default",
                 apidocs.ParameterLocation.QUERY,
-                description="Query param to filter by course org",
+                description="Query param to filter by course org_default",
+            ),
+            apidocs.string_parameter(
+                "run",
+                apidocs.ParameterLocation.QUERY,
+                description="Query param the course run",
             ),
             apidocs.string_parameter(
                 "search",
