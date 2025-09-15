@@ -48,7 +48,6 @@
             'video/04_video_control.js',
             'video/04_video_full_screen.js',
             'video/05_video_quality_control.js',
-            'video/06_video_progress_slider.js',
             'video/07_video_volume_control.js',
             'video/08_video_speed_control.js',
             'video/08_video_auto_advance_control.js',
@@ -69,7 +68,7 @@
         ],
         function(
             VideoStorage, initialize, FocusGrabber, VideoAccessibleMenu, VideoControl, VideoFullScreen,
-            VideoQualityControl, VideoProgressSlider, VideoVolumeControl, VideoSpeedControl, VideoAutoAdvanceControl,
+            VideoQualityControl, VideoVolumeControl, VideoSpeedControl, VideoAutoAdvanceControl,
             VideoCaption, VideoPlayPlaceholder, VideoPlayPauseControl, VideoPlaySkipControl, VideoSkipControl,
             VideoBumper, VideoSaveStatePlugin, VideoEventsPlugin, VideoEventsBumperPlugin, VideoPoster,
             VideoCompletionHandler, VideoCommands, VideoContextMenu, VideoSocialSharing
@@ -90,7 +89,7 @@
                     autoAdvanceEnabled = el.data('autoadvance-enabled') === 'True',
                     mainVideoModules = [
                         FocusGrabber, VideoControl, VideoPlayPlaceholder,
-                        VideoPlayPauseControl, VideoProgressSlider, VideoSpeedControl,
+                        VideoPlayPauseControl, VideoSpeedControl,
                         VideoVolumeControl, VideoQualityControl, VideoFullScreen, VideoCaption, VideoCommands,
                         VideoContextMenu, VideoSaveStatePlugin, VideoEventsPlugin, VideoCompletionHandler
                     ].concat(autoAdvanceEnabled ? [VideoAutoAdvanceControl] : []),
